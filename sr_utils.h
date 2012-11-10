@@ -30,8 +30,28 @@
 
 uint16_t cksum(const void *_data, int len);
 
+/* Ethernet utility methods */
 uint16_t ethertype(uint8_t *buf);
 uint8_t ip_protocol(uint8_t *buf);
+
+/* IP utility methods */
+sr_ip_hdr *ip_header(uint8_t *buf);
+uint8_t ip_ihl(sr_ip_hdr *ip_hdr);
+uint16_t ip_cksum(sr_ip_hdr *ip_hdr);
+uint32_t ip_dip(sr_ip_hdr *ip_hdr);
+uint16_t ip_len(sr_ip_hdr *ip_hdr);
+
+/* ARP utility methods */
+sr_arp_hdr *arp_header(uint8_t *buf);
+uint16_t arp_opcode(sr_arp_hdr *arp_hdr);
+uint16_t arp_hrd(sr_arp_hdr *arp_hdr);
+uint16_t arp_pro(sr_arp_hdr *arp_hdr);
+uint32_t arp_sip(sr_arp_hdr *arp_hdr);
+unsigned char *arp_sha(sr_arp_hdr *arp_hdr);
+uint32_t arp_dip(sr_arp_hdr *arp_hdr);
+
+/* ICMP utility methods */
+sr_icmp_hdr *icmp_header(sr_ip_hdr *ip_hdr);
 
 void print_addr_eth(uint8_t *addr);
 void print_addr_ip(struct in_addr address);

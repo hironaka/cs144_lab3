@@ -19,7 +19,77 @@ uint16_t cksum (const void *_data, int len) {
   return sum ? sum : 0xffff;
 }
 
+/*---------------------------------------------------------------------
+ * Utility method's related to processing IP packets. 
+ *---------------------------------------------------------------------*/
+sr_ip_hdr *ip_header(uint8_t *buf)
+{
+	return (sr_ip_hdr *) (buf + size_of(sr_ethernet_hdr));
+}
 
+/* Returns the header length in bytes. */
+uint8_t ip_ihl(sr_ip_hdr *ip_hdr)
+{
+	return ip_hdr->ip_hl * 4;
+}
+
+uint16_t ip_cksum(sr_ip_hdr *ip_hdr)
+{
+	return ip_hdr->ip_sum;
+}
+
+uint32_t ip_dip(sr_ip_hdr* ip_hdr)
+{
+	return ntohl(ip_hdr->ip_dst);
+}
+
+uint16_t ip_len(sr_ip_hdr *ip_hdr)
+{
+	return ntohs(ip_hdr->ip_len);
+}
+
+/*---------------------------------------------------------------------
+ * Utility method's related to processing arp packets. 
+ *---------------------------------------------------------------------*/
+sr_arp_hdr *arp_header(uint8_t *buf)
+{
+	return (sr_arp_hdr *) (buf + size_of(sr_ethernet_hdr));
+} 
+
+uint16_t arp_opcode(sr_arp_hdr *arp_hdr) 
+{
+	return ntohs(arp_hdr->ar_op);
+}
+
+uint16_t arp_hrd(sr_arp_hdr *arp_hdr) 
+{
+	return ntohs(arp_hdr->ar_hdr);
+}
+
+uint16_t arp_pro(sr_arp_hdr *arp_hdr)
+{
+	return ntohs(arp_hdr->ar_pro);
+}
+
+uint32_t arp_sip(sr_arp_hdr *arp_hdr)
+{
+	return ntohl(arp_hdr->ar_sip);
+}
+
+uint32_t arp_dip(sr_arp_hdr *arp_hdr)
+{
+	return ntohl(arp_hdr->ar_tip);
+}
+
+unsigned char *arp_sha(sr_arp_hdr *arp_hdr)
+{
+	return arp_hdr->ar_sha;
+}
+
+/*---------------------------------------------------------------------
+ * Utility method's related to processing ethernet packets. All take in
+ * raw ethernet packet in network byte order and return host byte order.
+ *---------------------------------------------------------------------*/
 uint16_t ethertype(uint8_t *buf) {
   sr_ethernet_hdr_t *ehdr = (sr_ethernet_hdr_t *)buf;
   return ntohs(ehdr->ether_type);
@@ -30,6 +100,17 @@ uint8_t ip_protocol(uint8_t *buf) {
   return iphdr->ip_p;
 }
 
+/*---------------------------------------------------------------------
+ * Utility method's related to processing ethernet packets. All take in
+ * raw ethernet packet in network byte order and return host byte order.
+ *---------------------------------------------------------------------*/
+sr_icmp_hdr *icmp_header(sr_ip_hdr *ip_hdr)
+{
+	uint8_t *icmp_hdr;
+	
+	icmp_hdr = (uint8_t *)(ip_hdr) + ip_ihl(ip_hdr);
+	return (sr_icmp_hdr *)icmp_hdr;
+}
 
 /* Prints out formatted Ethernet address, e.g. 00:11:22:33:44:55 */
 void print_addr_eth(uint8_t *addr) {
