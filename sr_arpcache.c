@@ -11,13 +11,35 @@
 #include "sr_if.h"
 #include "sr_protocol.h"
 
+/*
+ * Definitions.
+ */
+#define BROADCAST_IP 4294967295
+
+/*
+ * Internal Function Prototypes. 
+ */
+void send_icmp_host_unreachable(struct sr_instance *sr, struct sr_arpreq *req);
+void send_arp_request(struct sr_instance *sr, struct sr_arpreq *req);
+void handle_arp_req(struct sr_instance *sr, struct sr_arpreq *req);
+
 /* 
-  This function gets called every second. For each request sent out, we keep
-  checking whether we should resend an request or destroy the arp request.
-  See the comments in the header file for an idea of what it should look like.
-*/
+ * This function gets called every second. For each request sent out, we keep
+ * checking whether we should resend an request or destroy the arp request.
+ * See the comments in the header file for an idea of what it should look like.
+ */
 void sr_arpcache_sweepreqs(struct sr_instance *sr) { 
-    /* Fill this in */
+	struct sr_arpreq *cur;
+	struct sr_arpreq *next;
+	
+	/* Iterate through all outstanding arp requests */
+	cur = sr->cache.requests;
+	next = cur->next;
+	while(cur != 0) {
+		handle_arp_req(sr, cur);
+		cur = next;
+		next = cur->next;
+	}
 }
 
 /* You should not need to touch the rest of this code. */
@@ -245,3 +267,67 @@ void *sr_arpcache_timeout(void *sr_ptr) {
     return NULL;
 }
 
+/* 
+ * This function sends an outstanding arp request again if at least one seconds has 
+ * passed since their last send, and they have already been sent less than 5 times. 
+ * Otherwise, it icmp host unreachable to all packets waiting on this request.
+ */
+void handle_arp_req(struct sr_instance *sr, struct sr_arpreq *req) {
+	if (difftime(time(0), req->sent) > 1.0) {
+	
+		/* Host is not reachable */
+  	if (req->times_sent >= 5) {
+			send_icmp_host_unreachable(sr, req);
+			sr_arpreq_destroy(req);
+			
+		/* Resend ARP request. */
+		} else {
+    	send_arp_request(sr, req);
+      req->sent = time(0);
+      req->times_sent++;
+    }
+	}
+}
+
+/* 
+ * This function sends an arp request.
+ */
+void send_arp_request(struct sr_instance *sr, struct sr_arpreq *req)
+{
+	struct sr_arp_hdr arp_hdr;
+	struct sr_if *interface;
+	
+	/* Get the outgoing interface. */
+	interface = sr_get_interface(sr, req->iface);
+	
+	/* Create a ARP header with the appropriate request information */
+	arp_hdr.ar_hrd = htons(arp_hrd_ethernet);
+	arp_hdr.ar_pro = htons(arp_pro_ip);
+	arp_hdr.ar_hln = ETHER_ADDR_LEN;
+	arp_hdr.ar_pln = size_of(uint32_t);
+	arp_hdr.ar_op = htons(arp_op_request);
+	arp_hdr.ar_sha = interface->addr;
+	arp_hdr.ar_sip = htonl(interface->ip);
+	arp_hdr.ar_tip = req->ip;
+	
+	/* Encapsulate and attempt to send it. */
+	encap_and_send_pkt(sr, 
+					    		   (uint8_t *)&arp_hdr, 
+					    			 size_of(struct sr_arp_hdr), 
+					    			 BROADCAST_IP,
+					    			 1);
+}
+
+/* 
+ * This function sends icmp host unreachable to all packets waiting on the arp request.
+ */
+void send_icmp_host_unreachable(struct sr_instance *sr, struct sr_arpreq *req) {
+	struct sr_packet *cur;
+	int pkt_len;
+	
+	cur = req->packets;
+	while (cur != 0) {
+		sr_send_icmp(sr, cur->buf, cur->len, 3, 1);
+		cur = cur->next;
+	}
+}

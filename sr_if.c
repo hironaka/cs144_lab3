@@ -55,6 +55,32 @@ struct sr_if* sr_get_interface(struct sr_instance* sr, const char* name)
 } /* -- sr_get_interface -- */
 
 /*--------------------------------------------------------------------- 
+ * Method: sr_interface_ip_match
+ * Scope: Global
+ *
+ * Returns true if the supplied destination ip (dip) matches any of the
+ * interfaces ip addresses.
+ *
+ *---------------------------------------------------------------------*/
+int sr_interface_ip_match(struct sr_instance* sr, uint32_t dip)
+{
+	struct sr_if* if_walker = 0;
+
+  /* -- REQUIRES -- */
+  assert(sr);
+
+  if_walker = sr->if_list;
+  while(if_walker) {
+    if(dip == if_walker->ip)
+    	return 1;
+    
+    if_walker = if_walker->next;
+  }
+
+  return 0;
+}
+
+/*--------------------------------------------------------------------- 
  * Method: sr_add_interface(..)
  * Scope: Global
  *
