@@ -262,7 +262,6 @@ void process_arp(struct sr_instance* sr,
 	/* Add the sender's protocol address to my table. We do not need to send any 
 	 * queued packets yet, the periodic cache sweep will take care of this. Look it up
 	 * first to avoid duplicates. */
-	arp_hdr = arp_header(packet);
 	arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
 	
 	/* Arp entry already exists. */
