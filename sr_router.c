@@ -136,6 +136,7 @@ void sr_send_icmp(struct sr_instance* sr, uint8_t *packet, unsigned int len,
 									uint8_t type, uint8_t code)
 {
 	uint16_t icmp_len;
+	uint32_t dst;
 	struct sr_ip_hdr *error_ip_hdr;
 	struct sr_icmp_hdr icmp_hdr;
 	struct sr_icmp_hdr *icmp_hdr_ptr;
@@ -195,8 +196,9 @@ void sr_send_icmp(struct sr_instance* sr, uint8_t *packet, unsigned int len,
 	
 		/* Update the IP header fields. */
 		error_ip_hdr = (struct sr_ip_hdr *)packet;
+		dst = error_ip_hdr->ip_src;
 		error_ip_hdr->ip_src = error_ip_hdr->ip_dst;
-		error_ip_hdr->ip_dst = error_ip_hdr->ip_src;
+		error_ip_hdr->ip_dst = dst;
 		
 		/* Update the type of icmp from request to reply. */
 		icmp_hdr_ptr = icmp_header(error_ip_hdr);
