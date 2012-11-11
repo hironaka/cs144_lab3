@@ -577,6 +577,6 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 		memcpy(eth_pkt, packet, len);
 		arp_req = sr_arpcache_queuereq(&sr->cache, rt->gw.s_addr, eth_pkt, len, rt->interface);
 		sr_arpreq_handle(sr, arp_req);
-		free(arp_req);
+		free(eth_pkt);
 	}
 }
