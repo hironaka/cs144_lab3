@@ -198,7 +198,7 @@ struct sr_rt *sr_longest_prefix_match(struct sr_instance* sr, struct in_addr add
 	 * than the one used for the previous match. */
 	while(cur != 0) {
 		if (((cur->dest.s_addr & cur->mask.s_addr) == (addr.s_addr & cur->mask.s_addr)) &&
-			  (lpm_len < cur->mask.s_addr)) {
+			  (lpm_len <= cur->mask.s_addr)) {
 			  
 			lpm_len = cur->mask.s_addr;
 			lpm = cur;
