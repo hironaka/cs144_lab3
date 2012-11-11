@@ -220,7 +220,7 @@ void sr_send_icmp(struct sr_instance* sr, uint8_t *packet, unsigned int len,
 	icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, icmp_len); 
 	
 	/* Encapsulate and send */
-	sr_encap_and_send_pkt(sr, new_pkt, total_len, error_ip_hdr->ip_dst, 0);
+	sr_encap_and_send_pkt(sr, new_pkt, total_len, error_ip_hdr->ip_dst, 0, ethertype_ip);
 	free(new_pkt);
 }
 
@@ -313,7 +313,8 @@ void process_arp_request(struct sr_instance* sr,
 					    		   (uint8_t *)&reply_arp_hdr, 
 					    			 sizeof(struct sr_arp_hdr), 
 					    			 arp_hdr->ar_tip,
-					    			 1);
+					    			 1,
+					    			 ethertype_arp);
 }
 
 /*---------------------------------------------------------------------
@@ -504,7 +505,7 @@ void forward_ip_pkt(struct sr_instance* sr, struct sr_ip_hdr *ip_hdr)
 	/* Make a copy, encapsulate and send it on. */
 	fwd_ip_pkt = malloc(len);
 	memcpy(fwd_ip_pkt, ip_hdr, len);
-	sr_encap_and_send_pkt(sr, fwd_ip_pkt, len, ip_hdr->ip_dst, 1);
+	sr_encap_and_send_pkt(sr, fwd_ip_pkt, len, ip_hdr->ip_dst, 1, ethertype_ip);
 	free(fwd_ip_pkt);
 }
 
@@ -513,7 +514,8 @@ void forward_ip_pkt(struct sr_instance* sr, struct sr_ip_hdr *ip_hdr)
  *						  							uint8_t *packet, 
  *						 		  					unsigned int len, 
  *						  	  					uint32_t dip,
- *						  							int send_icmp)
+ *						  							int send_icmp,
+ *						  							sr_ethertype type)
  * Scope:  Global
  *
  * Sends a packet of length len and destination ip address dip, by 
@@ -528,7 +530,8 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 						 	 					uint8_t *packet, 
 						 						unsigned int len, 
 						  					uint32_t dip,
-						  					int send_icmp)
+						  					int send_icmp,
+						  					enum sr_ethertype type)
 {
 	struct sr_arpentry *arp_entry;
 	struct sr_arpreq *arp_req;
@@ -557,7 +560,7 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 		
 		/* Create the ethernet packet. */
 		eth_pkt_len = len + sizeof(eth_hdr);
-		eth_hdr.ether_type = htons(ethertype_arp);
+		eth_hdr.ether_type = htons(type);
 		if (ntohl(dip) == BROADCAST_IP)
 			memset(eth_hdr.ether_dhost, 255, ETHER_ADDR_LEN);
 		else

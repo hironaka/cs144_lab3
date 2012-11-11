@@ -34,7 +34,8 @@ void sr_arpreq_send_packets(struct sr_instance *sr, struct sr_arpreq *req)
 						 	 						cur->buf, 
 						 							cur->len, 
 						  						ip_hdr->ip_dst,
-						  						1);
+						  						1,
+						  						ethertype_ip);
 		
 		cur = cur->next;
 	}
@@ -336,7 +337,8 @@ void send_arp_request(struct sr_instance *sr, struct sr_arpreq *req)
 					    		   	  (uint8_t *)&arp_hdr, 
 					    			 		sizeof(struct sr_arp_hdr), 
 					    			 		htonl(BROADCAST_IP),
-					    			 		1);
+					    			 		1,
+					    			 		ethertype_arp);
 }
 
 /* 
