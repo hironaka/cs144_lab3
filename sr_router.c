@@ -273,7 +273,6 @@ void process_arp(struct sr_instance* sr,
 		/* There are packets waiting on this arp request. Send them. */
 		if (arp_req != 0) {
 			sr_arpreq_send_packets(sr, arp_req);
-			free(arp_req);
 		}
 	}
 		
