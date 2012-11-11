@@ -82,11 +82,6 @@ void sr_init(struct sr_instance* sr)
     pthread_t thread;
 
     pthread_create(&thread, &(sr->attr), sr_arpcache_timeout, sr);
-    
-    memset(broadcast_eth, 255, ETHER_ADDR_LEN);
-    arp_req = sr_arpcache_insert(&sr->cache, broadcast_eth, BROADCAST_IP);
-		if (arp_req != 0)
-			free(arp_req);
 } /* -- sr_init -- */
 
 /*---------------------------------------------------------------------
@@ -559,13 +554,16 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 	interface = sr_get_interface(sr, rt->interface);
 	
 	/* If there is already an arp entry in the cache, send now. */
-	arp_entry = sr_arpcache_lookup(&sr->cache, dip);
-	if (arp_entry) {
+	arp_entry = sr_arpcache_lookup(&sr->cache, rt->gw.s_addr);
+	if (arp_entry || ntohl(dip) == BROADCAST_IP) {
 		
 		/* Create the ethernet packet. */
 		eth_pkt_len = len + sizeof(eth_hdr);
 		eth_hdr.ether_type = htons(ethertype_arp);
-		memcpy(eth_hdr.ether_dhost, arp_entry->mac, ETHER_ADDR_LEN);
+		if (ntohl(dip) == BROADCAST_IP)
+			memcpy(eth_hdr.ether_dhost, arp_entry->mac, ETHER_ADDR_LEN);
+		else
+			memset(eth_hdr.ether_dhost, 255, ETHER_ADDR_LEN);
 		memcpy(eth_hdr.ether_shost, interface->addr, ETHER_ADDR_LEN);
 		eth_pkt = malloc(eth_pkt_len);
 		memcpy(eth_pkt, &eth_hdr, sizeof(eth_hdr));
