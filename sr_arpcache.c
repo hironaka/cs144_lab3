@@ -309,7 +309,7 @@ void send_arp_request(struct sr_instance *sr, struct sr_arpreq *req)
 	arp_hdr.ar_pln = sizeof(uint32_t);
 	arp_hdr.ar_op = htons(arp_op_request);
 	memcpy(arp_hdr.ar_sha, interface->addr, ETHER_ADDR_LEN);
-	arp_hdr.ar_sip = htonl(interface->ip);
+	arp_hdr.ar_sip = interface->ip;
 	arp_hdr.ar_tip = req->ip;
 	
 	/* Encapsulate and attempt to send it. */
