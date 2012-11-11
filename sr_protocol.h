@@ -174,5 +174,6 @@ struct sr_arp_hdr
 typedef struct sr_arp_hdr sr_arp_hdr_t;
 
 #define sr_IFACE_NAMELEN 32
+#define BROADCAST_IP 4294967295
 
 #endif /* -- SR_PROTOCOL_H -- */

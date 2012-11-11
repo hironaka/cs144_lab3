@@ -12,11 +12,6 @@
 #include "sr_protocol.h"
 
 /*
- * Definitions.
- */
-#define BROADCAST_IP 4294967295
-
-/*
  * Internal Function Prototypes. 
  */
 void send_icmp_host_unreachable(struct sr_instance *sr, struct sr_arpreq *req);

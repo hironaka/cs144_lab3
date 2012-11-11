@@ -66,6 +66,9 @@ void forward_ip_pkt(struct sr_instance* sr, struct sr_ip_hdr *ip_hdr);
 
 void sr_init(struct sr_instance* sr)
 {
+		struct sr_arpreq* arp_req;
+		unsigned char broadcast_eth[ETHER_ADDR_LEN];
+
     /* REQUIRES */
     assert(sr);
 
@@ -79,6 +82,11 @@ void sr_init(struct sr_instance* sr)
     pthread_t thread;
 
     pthread_create(&thread, &(sr->attr), sr_arpcache_timeout, sr);
+    
+    memset(broadcast_eth, 255, ETHER_ADDR_LEN);
+    arp_req = sr_arpcache_insert(&sr->cache, broadcast_eth, BROADCAST_IP);
+		if (arp_req != 0)
+			free(arp_req);
 } /* -- sr_init -- */
 
 /*---------------------------------------------------------------------
