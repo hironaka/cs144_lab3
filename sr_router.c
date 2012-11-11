@@ -570,6 +570,7 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 		eth_pkt = malloc(eth_pkt_len);
 		memcpy(eth_pkt, &eth_hdr, sizeof(eth_hdr));
 		memcpy(eth_pkt + sizeof(eth_hdr), packet, len);
+		print_hdrs(eth_pkt, eth_pkt_len);
 		sr_send_packet(sr, eth_pkt, eth_pkt_len, rt->interface);
 		free(eth_pkt);
 	
