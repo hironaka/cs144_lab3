@@ -66,9 +66,6 @@ void forward_ip_pkt(struct sr_instance* sr, struct sr_ip_hdr *ip_hdr);
 
 void sr_init(struct sr_instance* sr)
 {
-		struct sr_arpreq* arp_req;
-		unsigned char broadcast_eth[ETHER_ADDR_LEN];
-
     /* REQUIRES */
     assert(sr);
 
@@ -561,9 +558,9 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 		eth_pkt_len = len + sizeof(eth_hdr);
 		eth_hdr.ether_type = htons(ethertype_arp);
 		if (ntohl(dip) == BROADCAST_IP)
-			memcpy(eth_hdr.ether_dhost, arp_entry->mac, ETHER_ADDR_LEN);
-		else
 			memset(eth_hdr.ether_dhost, 255, ETHER_ADDR_LEN);
+		else
+			memcpy(eth_hdr.ether_dhost, arp_entry->mac, ETHER_ADDR_LEN);
 		memcpy(eth_hdr.ether_shost, interface->addr, ETHER_ADDR_LEN);
 		eth_pkt = malloc(eth_pkt_len);
 		memcpy(eth_pkt, &eth_hdr, sizeof(eth_hdr));
