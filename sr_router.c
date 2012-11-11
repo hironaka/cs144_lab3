@@ -218,7 +218,7 @@ void sr_send_icmp(struct sr_instance* sr, uint8_t *packet, unsigned int len,
 	icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, icmp_len); 
 	
 	/* Encapsulate and send */
-	sr_encap_and_send_pkt(sr, new_pkt, total_len, ip_dip(error_ip_hdr), 0);
+	sr_encap_and_send_pkt(sr, new_pkt, total_len, error_ip_hdr->ip_dst, 0);
 	free(new_pkt);
 }
 
@@ -310,7 +310,7 @@ void process_arp_request(struct sr_instance* sr,
 	sr_encap_and_send_pkt(sr, 
 					    		   (uint8_t *)&reply_arp_hdr, 
 					    			 sizeof(struct sr_arp_hdr), 
-					    			 arp_dip(arp_hdr),
+					    			 arp_hdr->ar_tip,
 					    			 1);
 }
 
@@ -502,7 +502,7 @@ void forward_ip_pkt(struct sr_instance* sr, struct sr_ip_hdr *ip_hdr)
 	/* Make a copy, encapsulate and send it on. */
 	fwd_ip_pkt = malloc(len);
 	memcpy(fwd_ip_pkt, ip_hdr, len);
-	sr_encap_and_send_pkt(sr, fwd_ip_pkt, len, ip_dip(ip_hdr), 1);
+	sr_encap_and_send_pkt(sr, fwd_ip_pkt, len, ip_hdr->ip_dst, 1);
 	free(fwd_ip_pkt);
 }
 
@@ -515,7 +515,7 @@ void forward_ip_pkt(struct sr_instance* sr, struct sr_ip_hdr *ip_hdr)
  * Scope:  Global
  *
  * Sends a packet of length len and destination ip address dip, by 
- * looking up the shortest prefix match of the dip (host byte order). 
+ * looking up the shortest prefix match of the dip (net byte order). 
  * If the destination is not found, it sends an ICMP host unreachable. 
  * If it finds a match, it then checks the arp cache to find the 
  * associated hardware address. If the hardware address is found it 
@@ -552,7 +552,7 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 	eth_pkt_len = len + sizeof(eth_hdr);
 	memcpy(eth_hdr.ether_shost, interface->addr, ETHER_ADDR_LEN);
 	eth_hdr.ether_type = htons(ethertype_arp);
-	arp_entry = sr_arpcache_lookup(&sr->cache, htonl(dip));
+	arp_entry = sr_arpcache_lookup(&sr->cache, dip);
 	
 	/* If there is already an arp entry in the cache, send now. */
 	if (arp_entry) {
@@ -568,6 +568,6 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 		eth_pkt = malloc(eth_pkt_len);
 		memcpy(eth_pkt, &eth_hdr, sizeof(eth_hdr));
 		memcpy(eth_pkt + sizeof(eth_hdr), packet, len);
-		sr_arpcache_queuereq(&sr->cache, htonl(dip), eth_pkt, eth_pkt_len, rt->interface);
+		sr_arpcache_queuereq(&sr->cache, dip, eth_pkt, eth_pkt_len, rt->interface);
 	}
 }
