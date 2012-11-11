@@ -259,9 +259,7 @@ void process_arp(struct sr_instance* sr,
 	if (rec_if->ip != arp_hdr->ar_tip)
 		return;
 		
-	/* Add the sender's protocol address to my table. We do not need to send any 
-	 * queued packets yet, the periodic cache sweep will take care of this. Look it up
-	 * first to avoid duplicates. */
+	/* Add the sender's protocol address to my table. */
 	arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
 	
 	/* Arp entry already exists. */
@@ -271,13 +269,20 @@ void process_arp(struct sr_instance* sr,
 	/* Arp entry doesn't exist so add it. */
 	} else {
 		arp_req = sr_arpcache_insert(&sr->cache, arp_hdr->ar_sha, arp_hdr->ar_sip);
-		if (arp_req != 0)
+		
+		/* There are packets waiting on this arp request. Send them. */
+		if (arp_req != 0) {
+			sr_arpreq_handle(sr, arp_req);
 			free(arp_req);
+		}
 	}
 		
 	/* Handle a request. */
 	if (arp_opcode(arp_hdr) == arp_op_request) {
 		process_arp_request(sr, arp_hdr, rec_if);
+	
+	} else {
+		
 	}
 }
 
@@ -530,6 +535,7 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 						  					int send_icmp)
 {
 	struct sr_arpentry *arp_entry;
+	struct sr_arpreq *arp_req;
 	struct sr_ethernet_hdr eth_hdr;
 	uint8_t *eth_pkt;
 	struct sr_if *interface;
@@ -571,6 +577,8 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 	} else {
 		eth_pkt = malloc(len);
 		memcpy(eth_pkt, packet, len);
-		sr_arpcache_queuereq(&sr->cache, rt->gw.s_addr, eth_pkt, len, rt->interface);
+		arp_req = sr_arpcache_queuereq(&sr->cache, rt->gw.s_addr, eth_pkt, len, rt->interface);
+		sr_arpreq_handle(sr, arp_req);
+		free(arp_req);
 	}
 }

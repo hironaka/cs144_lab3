@@ -16,7 +16,31 @@
  */
 void send_icmp_host_unreachable(struct sr_instance *sr, struct sr_arpreq *req);
 void send_arp_request(struct sr_instance *sr, struct sr_arpreq *req);
-void handle_arp_req(struct sr_instance *sr, struct sr_arpreq *req);
+
+/* 
+ * This function gets called every second. For each request sent out, we keep
+ * checking whether we should resend an request or destroy the arp request.
+ * See the comments in the header file for an idea of what it should look like.
+ */
+void sr_arpreq_send_packets(struct sr_instance *sr, struct sr_arpreq *req)
+{
+	struct sr_packet *cur;
+	struct sr_ip_hdr *ip_hdr;
+	
+	cur = req->packets;
+	while (cur != 0) {
+		ip_hdr = (struct sr_ip_hdr *)cur->buf;
+		sr_encap_and_send_pkt(sr,
+						 	 						cur->buf, 
+						 							cur->len, 
+						  						ip_hdr->ip_dst,
+						  						1);
+		
+		cur = cur->next;
+	}
+	
+	sr_arpreq_destroy(&sr->cache, req);
+}
 
 /* 
  * This function gets called every second. For each request sent out, we keep
@@ -32,7 +56,7 @@ void sr_arpcache_sweepreqs(struct sr_instance *sr) {
 	if (cur)
 		next = cur->next;
 	while(cur != 0) {
-		handle_arp_req(sr, cur);
+		sr_arpreq_handle(sr, cur);
 		cur = next;
 		if (cur)
 			next = cur->next;
@@ -269,7 +293,7 @@ void *sr_arpcache_timeout(void *sr_ptr) {
  * passed since their last send, and they have already been sent less than 5 times. 
  * Otherwise, it icmp host unreachable to all packets waiting on this request.
  */
-void handle_arp_req(struct sr_instance *sr, struct sr_arpreq *req) {
+void sr_arpreq_handle(struct sr_instance *sr, struct sr_arpreq *req) {
 	if (difftime(time(0), req->sent) > 1.0) {
 	
 		/* Host is not reachable */
