@@ -278,7 +278,7 @@ void handle_arp_req(struct sr_instance *sr, struct sr_arpreq *req) {
 		/* Host is not reachable */
   	if (req->times_sent >= 5) {
 			send_icmp_host_unreachable(sr, req);
-			sr_arpreq_destroy(req);
+			sr_arpreq_destroy(&sr->cache, req);
 			
 		/* Resend ARP request. */
 		} else {
@@ -298,24 +298,24 @@ void send_arp_request(struct sr_instance *sr, struct sr_arpreq *req)
 	struct sr_if *interface;
 	
 	/* Get the outgoing interface. */
-	interface = sr_get_interface(sr, req->iface);
+	interface = sr_get_interface(sr, req->packets->iface);
 	
 	/* Create a ARP header with the appropriate request information */
 	arp_hdr.ar_hrd = htons(arp_hrd_ethernet);
 	arp_hdr.ar_pro = htons(arp_pro_ip);
 	arp_hdr.ar_hln = ETHER_ADDR_LEN;
-	arp_hdr.ar_pln = size_of(uint32_t);
+	arp_hdr.ar_pln = sizeof(uint32_t);
 	arp_hdr.ar_op = htons(arp_op_request);
-	arp_hdr.ar_sha = interface->addr;
+	memcpy(arp_hdr.ar_sha, interface->addr, ETHER_ADDR_LEN);
 	arp_hdr.ar_sip = htonl(interface->ip);
 	arp_hdr.ar_tip = req->ip;
 	
 	/* Encapsulate and attempt to send it. */
-	encap_and_send_pkt(sr, 
-					    		   (uint8_t *)&arp_hdr, 
-					    			 size_of(struct sr_arp_hdr), 
-					    			 BROADCAST_IP,
-					    			 1);
+	sr_encap_and_send_pkt(sr, 
+					    		   	  (uint8_t *)&arp_hdr, 
+					    			 		sizeof(struct sr_arp_hdr), 
+					    			 		BROADCAST_IP,
+					    			 		1);
 }
 
 /* 
@@ -323,7 +323,6 @@ void send_arp_request(struct sr_instance *sr, struct sr_arpreq *req)
  */
 void send_icmp_host_unreachable(struct sr_instance *sr, struct sr_arpreq *req) {
 	struct sr_packet *cur;
-	int pkt_len;
 	
 	cur = req->packets;
 	while (cur != 0) {

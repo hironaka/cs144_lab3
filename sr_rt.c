@@ -183,20 +183,24 @@ void sr_print_routing_entry(struct sr_rt* entry)
  * Look up the longest prefix match in the routing table. Return the 
  * associated struct sr_rt.
  *---------------------------------------------------------------------*/
-struct sr_rt *sr_longest_prefix_match(struct sr_instance* sr, struct in_addr)
+struct sr_rt *sr_longest_prefix_match(struct sr_instance* sr, struct in_addr addr)
 {
 	struct sr_rt* cur;
 	struct sr_rt* lpm;
-	int lpm_len;
+	unsigned long lpm_len;
 	
 	cur = sr->routing_table;
 	lpm_len = 0;
 	lpm = 0;
+	
+	/* Iterate through the interfaces and compare the masked addresses. If they are equal
+	 * then we found a match. We know it is longest if the netmask we used is greater
+	 * than the one used for the previous match. */
 	while(cur != 0) {
-		if (((cur->dest & cur->mask) == (in_addr & cur->mask)) &&
-			  (lpm_len < cur->mask)) {
+		if (((cur->dest.s_addr & cur->mask.s_addr) == (addr.s_addr & cur->mask.s_addr)) &&
+			  (lpm_len < cur->mask.s_addr)) {
 			  
-			lpm_len = cur->mask;
+			lpm_len = cur->mask.s_addr;
 			lpm = cur;
 		}
 		

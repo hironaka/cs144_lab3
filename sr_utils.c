@@ -4,7 +4,6 @@
 #include "sr_protocol.h"
 #include "sr_utils.h"
 
-
 uint16_t cksum (const void *_data, int len) {
   const uint8_t *data = _data;
   uint32_t sum;
@@ -22,66 +21,74 @@ uint16_t cksum (const void *_data, int len) {
 /*---------------------------------------------------------------------
  * Utility method's related to processing IP packets. 
  *---------------------------------------------------------------------*/
-sr_ip_hdr *ip_header(uint8_t *buf)
+struct sr_ip_hdr *ip_header(uint8_t *buf)
 {
-	return (sr_ip_hdr *) (buf + size_of(sr_ethernet_hdr));
+	return (struct sr_ip_hdr *) (buf + sizeof(struct sr_ethernet_hdr));
 }
 
 /* Returns the header length in bytes. */
-uint8_t ip_ihl(sr_ip_hdr *ip_hdr)
+uint8_t ip_ihl(struct sr_ip_hdr *ip_hdr)
 {
 	return ip_hdr->ip_hl * 4;
 }
 
-uint16_t ip_cksum(sr_ip_hdr *ip_hdr)
+uint16_t ip_cksum(struct sr_ip_hdr *ip_hdr)
 {
 	return ip_hdr->ip_sum;
 }
 
-uint32_t ip_dip(sr_ip_hdr* ip_hdr)
+uint32_t ip_dip(struct sr_ip_hdr* ip_hdr)
 {
 	return ntohl(ip_hdr->ip_dst);
 }
 
-uint16_t ip_len(sr_ip_hdr *ip_hdr)
+uint16_t ip_len(struct sr_ip_hdr *ip_hdr)
 {
 	return ntohs(ip_hdr->ip_len);
+}
+
+struct in_addr ip_in_addr(uint32_t ip)
+{
+	struct in_addr inad;
+	
+	inad.s_addr = ip;
+	return inad;
 }
 
 /*---------------------------------------------------------------------
  * Utility method's related to processing arp packets. 
  *---------------------------------------------------------------------*/
-sr_arp_hdr *arp_header(uint8_t *buf)
+struct sr_arp_hdr *arp_header(uint8_t *buf)
 {
-	return (sr_arp_hdr *) (buf + size_of(sr_ethernet_hdr));
+	return (struct sr_arp_hdr *) (buf + sizeof(struct sr_ethernet_hdr));
 } 
 
-uint16_t arp_opcode(sr_arp_hdr *arp_hdr) 
+uint16_t arp_opcode(struct sr_arp_hdr *arp_hdr) 
 {
 	return ntohs(arp_hdr->ar_op);
 }
 
-uint16_t arp_hrd(sr_arp_hdr *arp_hdr) 
+uint16_t arp_hrd(struct sr_arp_hdr *arp_hdr) 
 {
-	return ntohs(arp_hdr->ar_hdr);
+	return ntohs(arp_hdr->ar_hrd);
 }
 
-uint16_t arp_pro(sr_arp_hdr *arp_hdr)
+uint16_t arp_pro(struct sr_arp_hdr *arp_hdr)
 {
 	return ntohs(arp_hdr->ar_pro);
 }
 
-uint32_t arp_sip(sr_arp_hdr *arp_hdr)
+uint32_t arp_sip(struct sr_arp_hdr *arp_hdr)
 {
 	return ntohl(arp_hdr->ar_sip);
 }
 
-uint32_t arp_dip(sr_arp_hdr *arp_hdr)
+uint32_t arp_dip(struct sr_arp_hdr *arp_hdr)
 {
 	return ntohl(arp_hdr->ar_tip);
 }
 
-unsigned char *arp_sha(sr_arp_hdr *arp_hdr)
+unsigned char *arp_sha(struct sr_arp_hdr *arp_hdr)
 {
 	return arp_hdr->ar_sha;
 }
@@ -91,12 +98,16 @@ unsigned char *arp_sha(sr_arp_hdr *arp_hdr)
  * raw ethernet packet in network byte order and return host byte order.
  *---------------------------------------------------------------------*/
 uint16_t ethertype(uint8_t *buf) {
-  sr_ethernet_hdr_t *ehdr = (sr_ethernet_hdr_t *)buf;
+  struct sr_ethernet_hdr *ehdr;
+  
+  ehdr = (struct sr_ethernet_hdr *)buf;
   return ntohs(ehdr->ether_type);
 }
 
 uint8_t ip_protocol(uint8_t *buf) {
-  sr_ip_hdr_t *iphdr = (sr_ip_hdr_t *)(buf);
+  struct sr_ip_hdr *iphdr;
+  
+  iphdr = (struct sr_ip_hdr *)(buf);
   return iphdr->ip_p;
 }
 
@@ -104,12 +115,12 @@ uint8_t ip_protocol(uint8_t *buf) {
  * Utility method's related to processing ethernet packets. All take in
  * raw ethernet packet in network byte order and return host byte order.
  *---------------------------------------------------------------------*/
-sr_icmp_hdr *icmp_header(sr_ip_hdr *ip_hdr)
+struct sr_icmp_hdr *icmp_header(struct sr_ip_hdr *ip_hdr)
 {
 	uint8_t *icmp_hdr;
 	
 	icmp_hdr = (uint8_t *)(ip_hdr) + ip_ihl(ip_hdr);
-	return (sr_icmp_hdr *)icmp_hdr;
+	return (struct sr_icmp_hdr *)icmp_hdr;
 }
 
 /* Prints out formatted Ethernet address, e.g. 00:11:22:33:44:55 */

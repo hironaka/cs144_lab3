@@ -76,32 +76,6 @@
 #endif
 #define ICMP_DATA_SIZE 28
 
-
-/* Structure of a ICMP header
- */
- /*
-struct sr_icmp_hdr {
-  uint8_t icmp_type;
-  uint8_t icmp_code;
-  uint16_t icmp_sum;
-  
-} __attribute__ ((packed)) ;
-typedef struct sr_icmp_hdr sr_icmp_hdr_t;
-*/
-
-/* Structure of a type3 header
- *//*
-struct sr_icmp_t3_hdr {
-  uint8_t icmp_type;
-  uint8_t icmp_code;
-  uint16_t icmp_sum;
-  uint16_t unused;
-  uint16_t next_mtu;
-  uint8_t data[ICMP_DATA_SIZE];
-
-} __attribute__ ((packed)) ;
-typedef struct sr_icmp_t3_hdr sr_icmp_t3_hdr_t;
-*/
 /* Structure of a ICMP header
  */
 struct sr_icmp_hdr {
@@ -114,7 +88,6 @@ struct sr_icmp_hdr {
 
 } __attribute__ ((packed)) ;
 typedef struct sr_icmp_hdr sr_icmp_hdr_t;
-
 
 /*
  * Structure of an internet header, naked of options.
@@ -160,8 +133,6 @@ struct sr_ethernet_hdr
 } __attribute__ ((packed)) ;
 typedef struct sr_ethernet_hdr sr_ethernet_hdr_t;
 
-//TODO: check that i didn't do something in hex by accident.
-
 enum sr_ip_protocol {
   ip_protocol_icmp = 0x0001,
 };
@@ -185,8 +156,8 @@ enum sr_arp_pro_fmt {
 };
 
 enum ip_version {
-	ip_version_4 = 4;
-}
+	ip_version_4 = 4,
+};
 
 struct sr_arp_hdr
 {

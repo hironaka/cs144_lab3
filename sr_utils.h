@@ -28,6 +28,8 @@
 #ifndef SR_UTILS_H
 #define SR_UTILS_H
 
+#include "sr_protocol.h"
+
 uint16_t cksum(const void *_data, int len);
 
 /* Ethernet utility methods */
@@ -35,23 +37,24 @@ uint16_t ethertype(uint8_t *buf);
 uint8_t ip_protocol(uint8_t *buf);
 
 /* IP utility methods */
-sr_ip_hdr *ip_header(uint8_t *buf);
-uint8_t ip_ihl(sr_ip_hdr *ip_hdr);
-uint16_t ip_cksum(sr_ip_hdr *ip_hdr);
-uint32_t ip_dip(sr_ip_hdr *ip_hdr);
-uint16_t ip_len(sr_ip_hdr *ip_hdr);
+struct sr_ip_hdr *ip_header(uint8_t *buf);
+uint8_t ip_ihl(struct sr_ip_hdr *ip_hdr);
+uint16_t ip_cksum(struct sr_ip_hdr *ip_hdr);
+uint32_t ip_dip(struct sr_ip_hdr *ip_hdr);
+uint16_t ip_len(struct sr_ip_hdr *ip_hdr);
+struct in_addr ip_in_addr(uint32_t ip);
 
 /* ARP utility methods */
-sr_arp_hdr *arp_header(uint8_t *buf);
-uint16_t arp_opcode(sr_arp_hdr *arp_hdr);
-uint16_t arp_hrd(sr_arp_hdr *arp_hdr);
-uint16_t arp_pro(sr_arp_hdr *arp_hdr);
-uint32_t arp_sip(sr_arp_hdr *arp_hdr);
-unsigned char *arp_sha(sr_arp_hdr *arp_hdr);
-uint32_t arp_dip(sr_arp_hdr *arp_hdr);
+struct sr_arp_hdr *arp_header(uint8_t *buf);
+uint16_t arp_opcode(struct sr_arp_hdr *arp_hdr);
+uint16_t arp_hrd(struct sr_arp_hdr *arp_hdr);
+uint16_t arp_pro(struct sr_arp_hdr *arp_hdr);
+uint32_t arp_sip(struct sr_arp_hdr *arp_hdr);
+unsigned char *arp_sha(struct sr_arp_hdr *arp_hdr);
+uint32_t arp_dip(struct sr_arp_hdr *arp_hdr);
 
 /* ICMP utility methods */
-sr_icmp_hdr *icmp_header(sr_ip_hdr *ip_hdr);
+struct sr_icmp_hdr *icmp_header(struct sr_ip_hdr *ip_hdr);
 
 void print_addr_eth(uint8_t *addr);
 void print_addr_ip(struct in_addr address);
