@@ -550,15 +550,15 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 	/* Fetch the appropriate outgoing interface. */
 	interface = sr_get_interface(sr, rt->interface);
 	
-	/* Create the ethernet packet. */
-	eth_pkt_len = len + sizeof(eth_hdr);
-	memcpy(eth_hdr.ether_shost, interface->addr, ETHER_ADDR_LEN);
-	eth_hdr.ether_type = htons(ethertype_arp);
-	arp_entry = sr_arpcache_lookup(&sr->cache, dip);
-	
 	/* If there is already an arp entry in the cache, send now. */
+	arp_entry = sr_arpcache_lookup(&sr->cache, dip);
 	if (arp_entry) {
+		
+		/* Create the ethernet packet. */
+		eth_pkt_len = len + sizeof(eth_hdr);
+		eth_hdr.ether_type = htons(ethertype_arp);
 		memcpy(eth_hdr.ether_dhost, arp_entry->mac, ETHER_ADDR_LEN);
+		memcpy(eth_hdr.ether_shost, interface->addr, ETHER_ADDR_LEN);
 		eth_pkt = malloc(eth_pkt_len);
 		memcpy(eth_pkt, &eth_hdr, sizeof(eth_hdr));
 		memcpy(eth_pkt + sizeof(eth_hdr), packet, len);
@@ -567,9 +567,8 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 	
 	/* Otherwise add it to the arp request queue. */
 	} else {
-		eth_pkt = malloc(eth_pkt_len);
-		memcpy(eth_pkt, &eth_hdr, sizeof(eth_hdr));
-		memcpy(eth_pkt + sizeof(eth_hdr), packet, len);
-		sr_arpcache_queuereq(&sr->cache, dip, eth_pkt, eth_pkt_len, rt->interface);
+		eth_pkt = malloc(len);
+		memcpy(eth_pkt, packet, len);
+		sr_arpcache_queuereq(&sr->cache, dip, eth_pkt, len, rt->interface);
 	}
 }
