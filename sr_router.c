@@ -337,7 +337,7 @@ void process_ip(struct sr_instance* sr,
 	
 	/* Is it destined for me?! */
 	ip_hdr = ip_header(packet);
-	if (sr_interface_ip_match(sr, ip_hdr->ip_tip)) {
+	if (sr_interface_ip_match(sr, ip_hdr->ip_dst)) {
 	
 		/* Process ICMP. */
 		if (ip_hdr->ip_p == ip_protocol_icmp) {
