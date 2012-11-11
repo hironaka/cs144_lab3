@@ -38,7 +38,8 @@ void sr_arpcache_sweepreqs(struct sr_instance *sr) {
 	while(cur != 0) {
 		handle_arp_req(sr, cur);
 		cur = next;
-		next = cur->next;
+		if (cur)
+			next = cur->next;
 	}
 }
 
