@@ -34,7 +34,8 @@ void sr_arpcache_sweepreqs(struct sr_instance *sr) {
 	
 	/* Iterate through all outstanding arp requests */
 	cur = sr->cache.requests;
-	next = cur->next;
+	if (cur)
+		next = cur->next;
 	while(cur != 0) {
 		handle_arp_req(sr, cur);
 		cur = next;
