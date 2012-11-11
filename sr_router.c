@@ -272,7 +272,7 @@ void process_arp(struct sr_instance* sr,
 		
 		/* There are packets waiting on this arp request. Send them. */
 		if (arp_req != 0) {
-			sr_arpreq_handle(sr, arp_req);
+			sr_arpreq_send_packets(sr, arp_req);
 			free(arp_req);
 		}
 	}
@@ -280,9 +280,6 @@ void process_arp(struct sr_instance* sr,
 	/* Handle a request. */
 	if (arp_opcode(arp_hdr) == arp_op_request) {
 		process_arp_request(sr, arp_hdr, rec_if);
-	
-	} else {
-		
 	}
 }
 
