@@ -174,7 +174,7 @@ void sr_send_icmp(struct sr_instance* sr, uint8_t *packet, unsigned int len,
 		
 		/* Update the source IP to be the outgoing interface's ip address. */
 		interface = sr_get_interface(sr, (const char*)rt->interface);
-		ip_hdr.ip_src = htonl(interface->ip);
+		ip_hdr.ip_src = interface->ip;
 		
 		/* Update length: first 8 bytes of original message, original ip header, icmp header
 		 * and new ip header. */
@@ -254,7 +254,7 @@ void process_arp(struct sr_instance* sr,
 	 * one and I would like to avoid duplicate valid cache entries for the same ip. */
 	rec_if = sr_get_interface(sr, interface);
 	arp_hdr = arp_header(packet);
-	if (rec_if->ip != arp_dip(arp_hdr))
+	if (rec_if->ip != arp_hdr->ar_tip)
 		return;
 		
 	/* Add the sender's protocol address to my table. We do not need to send any 
@@ -301,7 +301,7 @@ void process_arp_request(struct sr_instance* sr,
 	reply_arp_hdr.ar_hln = ETHER_ADDR_LEN;
 	reply_arp_hdr.ar_pln = sizeof(uint32_t);
 	reply_arp_hdr.ar_op = htons(arp_op_reply);
-	reply_arp_hdr.ar_sip = htonl(interface->ip);
+	reply_arp_hdr.ar_sip = interface->ip;
 	reply_arp_hdr.ar_tip = arp_hdr->ar_sip;
 	memcpy(reply_arp_hdr.ar_tha, arp_hdr->ar_sha, ETHER_ADDR_LEN);
 	memcpy(reply_arp_hdr.ar_sha, interface->addr, ETHER_ADDR_LEN);
