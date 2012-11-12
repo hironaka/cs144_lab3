@@ -279,7 +279,7 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 		eth_hdr.ether_type = htons(type);
 		
 		/* Destination is broadcast if it is an arp request. */
-		if (type == ethertype_arp && ((struct sr_arp_hdr *)packet)->ar_op == ntohs(arp_op_request))
+		if (type == ethertype_arp && ((struct sr_arp_hdr *)packet)->ar_op == htons(arp_op_request))
 			memset(eth_hdr.ether_dhost, 255, ETHER_ADDR_LEN);
 		
 		/* Destination is the arp entry mac if it is an ip packet or and are reply. */
