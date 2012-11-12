@@ -30,6 +30,7 @@
 #define MAX_IP_HDR_LEN 60
 #define DEFAULT_TTL 64
 #define ICMP_IP_HDR_LEN 5
+#define ICMP_IP_HDR_LEN_BYTES ICMP_IP_HDR_LEN * 4
 #define ICMP_COPIED_DATAGRAM_DATA_LEN 8
 
 /*---------------------------------------------------------------------
@@ -180,14 +181,14 @@ void sr_send_icmp(struct sr_instance* sr, uint8_t *packet, unsigned int len,
 		/* Update length: first 8 bytes of original message, original ip header, icmp header
 		 * and new ip header. */
 		icmp_len = ip_ihl(error_ip_hdr) + ICMP_COPIED_DATAGRAM_DATA_LEN + sizeof(struct sr_icmp_hdr);
-		total_len = icmp_len + ICMP_IP_HDR_LEN;
+		total_len = icmp_len + ICMP_IP_HDR_LEN_BYTES;
 		ip_hdr.ip_len = htons(total_len);
 	
 		/* Allocate a packet, copy everything in. */
 		new_pkt = malloc(total_len);
-		memcpy(new_pkt, &ip_hdr, ICMP_IP_HDR_LEN);
-		memcpy(new_pkt + ICMP_IP_HDR_LEN, &icmp_hdr, sizeof(struct sr_icmp_hdr));
-		memcpy(new_pkt + ICMP_IP_HDR_LEN + sizeof(struct sr_icmp_hdr), 
+		memcpy(new_pkt, &ip_hdr, ICMP_IP_HDR_LEN_BYTES);
+		memcpy(new_pkt + ICMP_IP_HDR_LEN_BYTES, &icmp_hdr, sizeof(struct sr_icmp_hdr));
+		memcpy(new_pkt + ICMP_IP_HDR_LEN_BYTES + sizeof(struct sr_icmp_hdr), 
 					 error_ip_hdr, 
 					 ip_ihl(error_ip_hdr) + ICMP_COPIED_DATAGRAM_DATA_LEN);
 		
