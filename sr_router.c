@@ -277,8 +277,12 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 		/* Create the ethernet packet. */
 		eth_pkt_len = len + sizeof(eth_hdr);
 		eth_hdr.ether_type = htons(type);
-		if (type == ethertype_arp)
+		
+		/* Destination is broadcast if it is an arp request. */
+		if (type == ethertype_arp && ((struct sr_arp_hdr *)packet)->ar_op == ntohs(arp_op_request))
 			memset(eth_hdr.ether_dhost, 255, ETHER_ADDR_LEN);
+		
+		/* Destination is the arp entry mac if it is an ip packet or and are reply. */
 		else
 			memcpy(eth_hdr.ether_dhost, arp_entry->mac, ETHER_ADDR_LEN);
 		memcpy(eth_hdr.ether_shost, interface->addr, ETHER_ADDR_LEN);
