@@ -183,6 +183,9 @@ void sr_send_icmp(struct sr_instance* sr, uint8_t *packet, unsigned int len,
 		icmp_len = ip_ihl(error_ip_hdr) + ICMP_COPIED_DATAGRAM_DATA_LEN + sizeof(struct sr_icmp_hdr);
 		total_len = icmp_len + ICMP_IP_HDR_LEN_BYTES;
 		ip_hdr.ip_len = htons(total_len);
+		
+		/* Update the ip checksum. */
+		ip_hdr.ip_sum = cksum(&ip_hdr, ICMP_IP_HDR_LEN_BYTES);
 	
 		/* Allocate a packet, copy everything in. */
 		new_pkt = malloc(total_len);
