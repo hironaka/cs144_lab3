@@ -32,16 +32,6 @@ uint8_t ip_ihl(struct sr_ip_hdr *ip_hdr)
 	return ip_hdr->ip_hl * 4;
 }
 
-uint16_t ip_cksum(struct sr_ip_hdr *ip_hdr)
-{
-	return ip_hdr->ip_sum;
-}
-
-uint32_t ip_dip(struct sr_ip_hdr* ip_hdr)
-{
-	return ntohl(ip_hdr->ip_dst);
-}
-
 uint16_t ip_len(struct sr_ip_hdr *ip_hdr)
 {
 	return ntohs(ip_hdr->ip_len);
@@ -76,21 +66,6 @@ uint16_t arp_hrd(struct sr_arp_hdr *arp_hdr)
 uint16_t arp_pro(struct sr_arp_hdr *arp_hdr)
 {
 	return ntohs(arp_hdr->ar_pro);
-}
-
-uint32_t arp_sip(struct sr_arp_hdr *arp_hdr)
-{
-	return ntohl(arp_hdr->ar_sip);
-}
-
-uint32_t arp_dip(struct sr_arp_hdr *arp_hdr)
-{
-	return ntohl(arp_hdr->ar_tip);
-}
-
-unsigned char *arp_sha(struct sr_arp_hdr *arp_hdr)
-{
-	return arp_hdr->ar_sha;
 }
 
 /*---------------------------------------------------------------------

@@ -1,0 +1,41 @@
+DATA STRUCTURES
+
+The only data structure I added was the ICMP header. This simplified the code for me
+because I could decompose it into just one function which send various icmp messages. 
+This meant that theoretically if one type worked, then the rest would work. Further,
+Several of the fields of the ICMP header were not used or required by this lab which
+made it easier to boil down an ICMP header to a skeleton.
+
+/* Structure of a ICMP header
+ */
+struct sr_icmp_hdr {
+  uint8_t icmp_type;
+  uint8_t icmp_code;
+  uint16_t icmp_sum;
+  uint32_t unused;			/* This field's use differs between ICMP message types, and is not 
+  												 needed in this lab. */
+} __attribute__ ((packed)) ;
+typedef struct sr_icmp_hdr sr_icmp_hdr_t;
+
+DESIGN CHOICES
+
+I tried my best to decompose and reuse code. This hopefully improved the robustness of 
+my code. For example, I have one function that encapsulates packets in an ethernet
+header before sending them, regardless of whether they are arps or icmp messages or
+forwarded ip messages. This somewhat separates the functionality of the layers as well.
+
+Almost all fields of the packets were kept in network byte order. This made the code
+slightly more efficient and also simplified implementation. The only exception was for
+lengths which are required for allocations. For these I typically used accessor functions
+located in sr_utils.c/.h. 
+
+To implement the arp cache I followed the description in the sr_arpcache header. After 
+reading the arp RFC I decided to add all mac, ip mappings I received that were destined
+for me before checking if they were replies or requests. I also chose not to update 
+existing entries before checking if they were destined for me (as described in the arp RFC) 
+because there was not good functionality to for updating entries, and it could result in
+duplicate entries.
+
+For longest prefix match i used a linear search of the list. This seemed like a good 
+idea because of the size of the routing table, but in a production implementation
+I would choose a more efficient algorithm. 

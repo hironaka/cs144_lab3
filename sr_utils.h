@@ -39,8 +39,6 @@ uint8_t ip_protocol(uint8_t *buf);
 /* IP utility methods */
 struct sr_ip_hdr *ip_header(uint8_t *buf);
 uint8_t ip_ihl(struct sr_ip_hdr *ip_hdr);
-uint16_t ip_cksum(struct sr_ip_hdr *ip_hdr);
-uint32_t ip_dip(struct sr_ip_hdr *ip_hdr);
 uint16_t ip_len(struct sr_ip_hdr *ip_hdr);
 struct in_addr ip_in_addr(uint32_t ip);
 
@@ -49,9 +47,6 @@ struct sr_arp_hdr *arp_header(uint8_t *buf);
 uint16_t arp_opcode(struct sr_arp_hdr *arp_hdr);
 uint16_t arp_hrd(struct sr_arp_hdr *arp_hdr);
 uint16_t arp_pro(struct sr_arp_hdr *arp_hdr);
-uint32_t arp_sip(struct sr_arp_hdr *arp_hdr);
-unsigned char *arp_sha(struct sr_arp_hdr *arp_hdr);
-uint32_t arp_dip(struct sr_arp_hdr *arp_hdr);
 
 /* ICMP utility methods */
 struct sr_icmp_hdr *icmp_header(struct sr_ip_hdr *ip_hdr);
