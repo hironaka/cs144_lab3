@@ -84,8 +84,6 @@ struct sr_icmp_hdr {
   uint16_t icmp_sum;
   uint32_t unused;			/* This field's use differs between ICMP message types, and is not 
   												 needed in this lab. */
-  uint8_t data[ICMP_DATA_SIZE];
-
 } __attribute__ ((packed)) ;
 typedef struct sr_icmp_hdr sr_icmp_hdr_t;
 
