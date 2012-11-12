@@ -225,6 +225,80 @@ void sr_send_icmp(struct sr_instance* sr, uint8_t *packet, unsigned int len,
 }
 
 /*---------------------------------------------------------------------
+ * Method: sr_encap_and_send_pkt(struct sr_instance* sr, 
+ *						  							uint8_t *packet, 
+ *						 		  					unsigned int len, 
+ *						  	  					uint32_t dip,
+ *						  							int send_icmp,
+ *						  							sr_ethertype type)
+ * Scope:  Global
+ *
+ * Sends a packet of length len and destination ip address dip, by 
+ * looking up the shortest prefix match of the dip (net byte order). 
+ * If the destination is not found, it sends an ICMP host unreachable. 
+ * If it finds a match, it then checks the arp cache to find the 
+ * associated hardware address. If the hardware address is found it 
+ * sends it, otherwise it queues the packet and sends an ARP request. 
+ *
+ *---------------------------------------------------------------------*/
+void sr_encap_and_send_pkt(struct sr_instance* sr,
+						 	 					uint8_t *packet, 
+						 						unsigned int len, 
+						  					uint32_t dip,
+						  					int send_icmp,
+						  					enum sr_ethertype type)
+{
+	struct sr_arpentry *arp_entry;
+	struct sr_arpreq *arp_req;
+	struct sr_ethernet_hdr eth_hdr;
+	uint8_t *eth_pkt;
+	struct sr_if *interface;
+	struct sr_rt *rt;
+	unsigned int eth_pkt_len;
+	
+	/* Look up shortest prefix match in your routing table. */
+	rt = sr_longest_prefix_match(sr, ip_in_addr(dip));
+	
+	/* If the entry doesn't exist, send ICMP host unreachable and return if necessary. */
+	if (rt == 0) {
+		if (send_icmp)
+			sr_send_icmp(sr, packet, len, 3, 1);
+		return;
+	}
+	
+	/* Fetch the appropriate outgoing interface. */
+	interface = sr_get_interface(sr, rt->interface);
+	
+	/* If there is already an arp entry in the cache, send now. */
+	arp_entry = sr_arpcache_lookup(&sr->cache, rt->gw.s_addr);
+	if (arp_entry || type == ethertype_arp) {
+		
+		/* Create the ethernet packet. */
+		eth_pkt_len = len + sizeof(eth_hdr);
+		eth_hdr.ether_type = htons(type);
+		if (type == ethertype_arp)
+			memset(eth_hdr.ether_dhost, 255, ETHER_ADDR_LEN);
+		else
+			memcpy(eth_hdr.ether_dhost, arp_entry->mac, ETHER_ADDR_LEN);
+		memcpy(eth_hdr.ether_shost, interface->addr, ETHER_ADDR_LEN);
+		eth_pkt = malloc(eth_pkt_len);
+		memcpy(eth_pkt, &eth_hdr, sizeof(eth_hdr));
+		memcpy(eth_pkt + sizeof(eth_hdr), packet, len);
+		print_hdrs(eth_pkt, eth_pkt_len);
+		sr_send_packet(sr, eth_pkt, eth_pkt_len, rt->interface);
+		free(eth_pkt);
+	
+	/* Otherwise add it to the arp request queue. */
+	} else {
+		eth_pkt = malloc(len);
+		memcpy(eth_pkt, packet, len);
+		arp_req = sr_arpcache_queuereq(&sr->cache, rt->gw.s_addr, eth_pkt, len, rt->interface);
+		sr_arpreq_handle(sr, arp_req);
+		free(eth_pkt);
+	}
+}
+
+/*---------------------------------------------------------------------
  * Method: process_arp(struct sr_instance* sr,
  *      			         uint8_t * packet,
  *      				 			 unsigned int len,
@@ -507,78 +581,4 @@ void forward_ip_pkt(struct sr_instance* sr, struct sr_ip_hdr *ip_hdr)
 	memcpy(fwd_ip_pkt, ip_hdr, len);
 	sr_encap_and_send_pkt(sr, fwd_ip_pkt, len, ip_hdr->ip_dst, 1, ethertype_ip);
 	free(fwd_ip_pkt);
-}
-
-/*---------------------------------------------------------------------
- * Method: sr_encap_and_send_pkt(struct sr_instance* sr, 
- *						  							uint8_t *packet, 
- *						 		  					unsigned int len, 
- *						  	  					uint32_t dip,
- *						  							int send_icmp,
- *						  							sr_ethertype type)
- * Scope:  Global
- *
- * Sends a packet of length len and destination ip address dip, by 
- * looking up the shortest prefix match of the dip (net byte order). 
- * If the destination is not found, it sends an ICMP host unreachable. 
- * If it finds a match, it then checks the arp cache to find the 
- * associated hardware address. If the hardware address is found it 
- * sends it, otherwise it queues the packet and sends an ARP request. 
- *
- *---------------------------------------------------------------------*/
-void sr_encap_and_send_pkt(struct sr_instance* sr,
-						 	 					uint8_t *packet, 
-						 						unsigned int len, 
-						  					uint32_t dip,
-						  					int send_icmp,
-						  					enum sr_ethertype type)
-{
-	struct sr_arpentry *arp_entry;
-	struct sr_arpreq *arp_req;
-	struct sr_ethernet_hdr eth_hdr;
-	uint8_t *eth_pkt;
-	struct sr_if *interface;
-	struct sr_rt *rt;
-	unsigned int eth_pkt_len;
-	
-	/* Look up shortest prefix match in your routing table. */
-	rt = sr_longest_prefix_match(sr, ip_in_addr(dip));
-	
-	/* If the entry doesn't exist, send ICMP host unreachable and return if necessary. */
-	if (rt == 0) {
-		if (send_icmp)
-			sr_send_icmp(sr, packet, len, 3, 1);
-		return;
-	}
-	
-	/* Fetch the appropriate outgoing interface. */
-	interface = sr_get_interface(sr, rt->interface);
-	
-	/* If there is already an arp entry in the cache, send now. */
-	arp_entry = sr_arpcache_lookup(&sr->cache, rt->gw.s_addr);
-	if (arp_entry || ntohl(dip) == BROADCAST_IP) {
-		
-		/* Create the ethernet packet. */
-		eth_pkt_len = len + sizeof(eth_hdr);
-		eth_hdr.ether_type = htons(type);
-		if (ntohl(dip) == BROADCAST_IP)
-			memset(eth_hdr.ether_dhost, 255, ETHER_ADDR_LEN);
-		else
-			memcpy(eth_hdr.ether_dhost, arp_entry->mac, ETHER_ADDR_LEN);
-		memcpy(eth_hdr.ether_shost, interface->addr, ETHER_ADDR_LEN);
-		eth_pkt = malloc(eth_pkt_len);
-		memcpy(eth_pkt, &eth_hdr, sizeof(eth_hdr));
-		memcpy(eth_pkt + sizeof(eth_hdr), packet, len);
-		print_hdrs(eth_pkt, eth_pkt_len);
-		sr_send_packet(sr, eth_pkt, eth_pkt_len, rt->interface);
-		free(eth_pkt);
-	
-	/* Otherwise add it to the arp request queue. */
-	} else {
-		eth_pkt = malloc(len);
-		memcpy(eth_pkt, packet, len);
-		arp_req = sr_arpcache_queuereq(&sr->cache, rt->gw.s_addr, eth_pkt, len, rt->interface);
-		sr_arpreq_handle(sr, arp_req);
-		free(eth_pkt);
-	}
 }

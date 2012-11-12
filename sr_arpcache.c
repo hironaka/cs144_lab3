@@ -336,7 +336,7 @@ void send_arp_request(struct sr_instance *sr, struct sr_arpreq *req)
 	sr_encap_and_send_pkt(sr, 
 					    		   	  (uint8_t *)&arp_hdr, 
 					    			 		sizeof(struct sr_arp_hdr), 
-					    			 		htonl(BROADCAST_IP),
+					    			 		req->ip,
 					    			 		1,
 					    			 		ethertype_arp);
 }
