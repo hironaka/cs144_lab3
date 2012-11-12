@@ -390,7 +390,7 @@ void process_arp_request(struct sr_instance* sr,
 	sr_encap_and_send_pkt(sr, 
 					    		   (uint8_t *)&reply_arp_hdr, 
 					    			 sizeof(struct sr_arp_hdr), 
-					    			 arp_hdr->ar_tip,
+					    			 arp_hdr->ar_sip,
 					    			 1,
 					    			 ethertype_arp);
 }
