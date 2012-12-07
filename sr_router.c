@@ -294,6 +294,7 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 		memcpy(eth_pkt + sizeof(eth_hdr), packet, len);
 		sr_send_packet(sr, eth_pkt, eth_pkt_len, rt->interface);
 		free(eth_pkt);
+		free(arp_entry);
 	
 	/* Otherwise add it to the arp request queue. */
 	} else {
@@ -342,9 +343,13 @@ void process_arp(struct sr_instance* sr,
 		
 	/* Add the sender's protocol address to my table. */
 	arp_entry = sr_arpcache_lookup(&sr->cache, arp_hdr->ar_sip);
-
+	
+	/* Arp entry already exists. NOTE: arp_entry is a copy in this case so free it.*/
+	if (arp_entry != 0) {
+		free(arp_entry);
+	
 	/* Arp entry doesn't exist so add it. */
-	if (arp_entry == 0) {
+	} else {
 		arp_req = sr_arpcache_insert(&sr->cache, arp_hdr->ar_sha, arp_hdr->ar_sip);
 		
 		/* There are packets waiting on this arp request. Send them. */

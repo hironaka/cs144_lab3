@@ -39,8 +39,6 @@ void sr_arpreq_send_packets(struct sr_instance *sr, struct sr_arpreq *req)
 		
 		cur = cur->next;
 	}
-	
-	sr_arpreq_destroy(&sr->cache, req);
 }
 
 /* 
