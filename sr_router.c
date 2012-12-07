@@ -32,7 +32,13 @@
 #define ICMP_IP_HDR_LEN 5
 #define ICMP_IP_HDR_LEN_BYTES ICMP_IP_HDR_LEN * 4
 #define ICMP_COPIED_DATAGRAM_DATA_LEN 8
-
+#define ICMP_ECHO_REQUEST_CODE 8 
+#define ICMP_ECHO_REPLY_CODE 0
+#define ICMP_UNREACHABLE_TYPE 3
+#define ICMP_HOST_CODE 1
+#define ICMP_NET_CODE 0
+#define ICMP_PORT_CODE 3
+#define ICMP_TIME_EXCEEDED_CODE 11
 /*---------------------------------------------------------------------
  * Internal Function Prototypes
  *---------------------------------------------------------------------*/
@@ -148,7 +154,7 @@ void sr_send_icmp(struct sr_instance* sr, uint8_t *packet, unsigned int len,
 	uint16_t total_len;
 	
 	/* Destination unreachable message or TTL exceeded. */
-	if (type == 3 || type == 11) {
+	if (type == ICMP_PORT_CODE || type == ICMP_TIME_EXCEEDED_CODE) {
 	
 		/* Update icmp header fields. */
 		icmp_hdr.icmp_type = type;
@@ -197,7 +203,7 @@ void sr_send_icmp(struct sr_instance* sr, uint8_t *packet, unsigned int len,
 					 ip_ihl(error_ip_hdr) + ICMP_COPIED_DATAGRAM_DATA_LEN);
 		
 	/* Echo reply. */
-	} else if (type == 0) {
+	} else if (type == ICMP_ECHO_REPLY_CODE) {
 	
 		/* Update the IP header fields. */
 		error_ip_hdr = (struct sr_ip_hdr *)packet;
@@ -267,7 +273,7 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 	/* If the entry doesn't exist, send ICMP host unreachable and return if necessary. */
 	if (rt == 0) {
 		if (send_icmp)
-			sr_send_icmp(sr, packet, len, 3, 0);
+			sr_send_icmp(sr, packet, len, ICMP_UNREACHABLE_TYPE, ICMP_NET_CODE);
 		return;
 	}
 	
@@ -432,7 +438,11 @@ void process_ip(struct sr_instance* sr,
 		
 		/* If it's TCP/UDP, send ICMP port unreachable. */
 		} else {
-			sr_send_icmp(sr, (uint8_t *)ip_hdr, ip_len(ip_hdr), 3, 3);
+			sr_send_icmp(sr, 
+								   (uint8_t *)ip_hdr, 
+								   ip_len(ip_hdr), 
+								   ICMP_UNREACHABLE_TYPE, 
+								   ICMP_PORT_CODE);
 		}
 	
 	/* Forward it. */
@@ -456,7 +466,7 @@ void process_icmp(struct sr_instance* sr, struct sr_ip_hdr *ip_hdr)
 		return;
 	
 	/* Send icmp echo reply. */
-	sr_send_icmp(sr, (uint8_t *)ip_hdr, ip_len(ip_hdr), 0, 0);
+	sr_send_icmp(sr, (uint8_t *)ip_hdr, ip_len(ip_hdr), ICMP_ECHO_REPLY_CODE, 0);
 }
 
 /*---------------------------------------------------------------------
@@ -554,7 +564,9 @@ int valid_icmp(struct sr_ip_hdr *ip_hdr)
 		return 0;
 	
 	/* Make sure it is a icmp echo request. */
-	if ((icmp_hdr->icmp_type != 8) || (icmp_hdr->icmp_code != 0))
+	if ((icmp_hdr->icmp_type != ICMP_ECHO_REQUEST_CODE) || 
+		  (icmp_hdr->icmp_code != ICMP_ECHO_REPLY_CODE))
+		  
 		return 0;
 	
 	return 1;
@@ -578,7 +590,7 @@ void forward_ip_pkt(struct sr_instance* sr, struct sr_ip_hdr *ip_hdr)
 	/* If the ttl is equal to 0, send an ICMP Time exceeded response and return. */
 	len = ip_len(ip_hdr);
 	if (ip_hdr->ip_ttl == 0) {
-		sr_send_icmp(sr, (uint8_t *)ip_hdr, len, 11, 0);
+		sr_send_icmp(sr, (uint8_t *)ip_hdr, len, ICMP_TIME_EXCEEDED_CODE, 0);
 		return;
 	}
 	
