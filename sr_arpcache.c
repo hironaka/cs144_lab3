@@ -335,7 +335,7 @@ void send_arp_request(struct sr_instance *sr, struct sr_arpreq *req)
 					    		   	  (uint8_t *)&arp_hdr, 
 					    			 		sizeof(struct sr_arp_hdr), 
 					    			 		req->ip,
-					    			 		1,
+					    			 		0,
 					    			 		ethertype_arp);
 }
 
