@@ -38,7 +38,7 @@
 #define ICMP_HOST_CODE 1
 #define ICMP_NET_CODE 0
 #define ICMP_PORT_CODE 3
-#define ICMP_TIME_EXCEEDED_CODE 11
+#define ICMP_TIME_EXCEEDED_TYPE 11
 /*---------------------------------------------------------------------
  * Internal Function Prototypes
  *---------------------------------------------------------------------*/
@@ -154,7 +154,7 @@ void sr_send_icmp(struct sr_instance* sr, uint8_t *packet, unsigned int len,
 	uint16_t total_len;
 	
 	/* Destination unreachable message or TTL exceeded. */
-	if (type == ICMP_PORT_CODE || type == ICMP_TIME_EXCEEDED_CODE) {
+	if (type == ICMP_UNREACHABLE_TYPE || type == ICMP_TIME_EXCEEDED_TYPE) {
 	
 		/* Update icmp header fields. */
 		icmp_hdr.icmp_type = type;
@@ -590,7 +590,7 @@ void forward_ip_pkt(struct sr_instance* sr, struct sr_ip_hdr *ip_hdr)
 	/* If the ttl is equal to 0, send an ICMP Time exceeded response and return. */
 	len = ip_len(ip_hdr);
 	if (ip_hdr->ip_ttl == 0) {
-		sr_send_icmp(sr, (uint8_t *)ip_hdr, len, ICMP_TIME_EXCEEDED_CODE, 0);
+		sr_send_icmp(sr, (uint8_t *)ip_hdr, len, ICMP_TIME_EXCEEDED_TYPE, 0);
 		return;
 	}
 	
