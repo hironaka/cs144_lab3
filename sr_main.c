@@ -44,6 +44,9 @@ extern char* optarg;
 #define DEFAULT_SERVER "localhost"
 #define DEFAULT_RTABLE "rtable"
 #define DEFAULT_TOPO 0
+#define DEFAULT_ICMP_TO 60
+#define DEFAULT_TCP_ESTAB_TO 7440
+#define DEFAULT_TCP_TRANS_TO 300
 
 static void usage(char* );
 static void sr_init_instance(struct sr_instance* );
@@ -66,10 +69,17 @@ int main(int argc, char **argv)
     unsigned int topo = DEFAULT_TOPO;
     char *logfile = 0;
     struct sr_instance sr;
+    int nat = 0;
+    int icmp_to = DEFAULT_ICMP_TO;
+    int tcp_estab_to = DEFAULT_TCP_ESTAB_TO;
+    int tcp_trans_to = DEFAULT_TCP_TRANS_TO;
 
     printf("Using %s\n", VERSION_INFO);
 
-    while ((c = getopt(argc, argv, "hs:v:p:u:t:r:l:T:")) != EOF)
+		/* Add additional code to handle -n (enable NAT) -I INT (ICMP query timeout, default 
+		   60 sec), -E INT (TCP established idle timeout, default 7440 sec), -R INT (TCP 
+		   transitory idle timeout, default 300 sec). TODO: remove prints */
+    while ((c = getopt(argc, argv, "hs:v:p:u:t:r:l:T:nI:E:R")) != EOF)
     {
         switch (c)
         {
@@ -101,11 +111,33 @@ int main(int argc, char **argv)
             case 'T':
                 template = optarg;
                 break;
+            case 'n':
+            		fprintf(stderr, "NAT ON\n");
+            		nat = 1;
+            		break;
+            case 'I':
+            		icmp_to = atoi((char *) optarg);
+            		fprintf(stderr, "ICMP TO: %d\n", icmp_to);
+            		break;
+            case 'E':
+            		tcp_estab_to = atoi((char *) optarg);
+            		fprintf(stderr, "TCP ESTAB TO: %d\n", tcp_estab_to);
+            		break;
+            case 'R':
+            		tcp_trans_to = atoi((char *) optarg);
+            		fprintf(stderr, "TCP TRANS TO: %d\n", tcp_trans_to);
+            		break;
         } /* switch */
     } /* -- while -- */
 
     /* -- zero out sr instance -- */
     sr_init_instance(&sr);
+    
+    /* -- set nat configuration -- */
+    sr.nat = nat;
+    sr.icmp_to = icmp_to;
+    sr.tcp_estab_to = tcp_estab_to;
+    sr.tcp_trans_to = tcp_trans_to;
 
     /* -- set up routing table from file -- */
     if(template == NULL) {
@@ -179,8 +211,15 @@ static void usage(char* argv0)
     printf("           [-T template_name] [-u username] \n");
     printf("           [-t topo id] [-r routing table] \n");
     printf("           [-l log file] \n");
+    printf("           [-n] [-I icmp_idle_to] \n");
+    printf("           [-E tcp_estab_idle_to] \n");
+    printf("           [-R tcp_trans_idle_to] \n");
     printf("   defaults server=%s port=%d host=%s  \n",
             DEFAULT_SERVER, DEFAULT_PORT, DEFAULT_HOST );
+    printf("            icmp_idle_to=%d tcp_estab_idle_to=%d \n", 
+    				DEFAULT_ICMP_TO, DEFAULT_TCP_ESTAB_TO); 
+    printf("            tcp_trans_idle_to=%d  \n",
+    				DEFAULT_TCP_TRANS_TO);
 } /* -- usage -- */
 
 /*-----------------------------------------------------------------------------
@@ -249,6 +288,10 @@ static void sr_init_instance(struct sr_instance* sr)
     sr->if_list = 0;
     sr->routing_table = 0;
     sr->logfile = 0;
+    sr->nat = 0;
+    sr->icmp_to = 0;
+    sr->tcp_estab_to = 0; 
+    sr->tcp_trans_to = 0;
 } /* -- sr_init_instance -- */
 
 /*-----------------------------------------------------------------------------
