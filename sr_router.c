@@ -266,7 +266,7 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 	/* If the entry doesn't exist, send ICMP host unreachable and return if necessary. */
 	if (rt == 0) {
 		if (send_icmp)
-			sr_send_icmp(sr, packet, len, 3, 1);
+			sr_send_icmp(sr, packet, len, 3, 0);
 		return;
 	}
 	
