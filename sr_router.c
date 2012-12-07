@@ -167,6 +167,7 @@ void sr_send_icmp(struct sr_instance* sr, uint8_t *packet, unsigned int len,
 		ip_hdr.ip_p = ip_protocol_icmp;
 		ip_hdr.ip_sum = 0;
 		ip_hdr.ip_dst = error_ip_hdr->ip_src;
+		dst = error_ip_hdr->ip_src;
 	
 		/* Look up longest prefix match in your routing table. If it doesn't exist, just
 		 * give up. No use in sending an error message for an error message. */
@@ -224,7 +225,7 @@ void sr_send_icmp(struct sr_instance* sr, uint8_t *packet, unsigned int len,
 	icmp_hdr_ptr->icmp_sum = cksum(icmp_hdr_ptr, icmp_len); 
 	
 	/* Encapsulate and send */
-	sr_encap_and_send_pkt(sr, new_pkt, total_len, error_ip_hdr->ip_dst, 0, ethertype_ip);
+	sr_encap_and_send_pkt(sr, new_pkt, total_len, dst, 0, ethertype_ip);
 	free(new_pkt);
 }
 
@@ -294,7 +295,8 @@ void sr_encap_and_send_pkt(struct sr_instance* sr,
 		memcpy(eth_pkt + sizeof(eth_hdr), packet, len);
 		sr_send_packet(sr, eth_pkt, eth_pkt_len, rt->interface);
 		free(eth_pkt);
-		free(arp_entry);
+		if (arp_entry)
+			free(arp_entry);
 	
 	/* Otherwise add it to the arp request queue. */
 	} else {
