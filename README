@@ -39,3 +39,6 @@ duplicate entries.
 For longest prefix match i used a linear search of the list. This seemed like a good 
 idea because of the size of the routing table, but in a production implementation
 I would choose a more efficient algorithm. 
+
+ICMP/TCP mappings are store in two different linked lists. This meant a little extra code
+to handle the different insertions/deletions/etc, but made look ups slightly faster. 

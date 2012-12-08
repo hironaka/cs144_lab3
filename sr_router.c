@@ -26,6 +26,7 @@
 /*---------------------------------------------------------------------
  * Definitions
  *---------------------------------------------------------------------*/
+
 #define MIN_IP_HDR_LEN 20 
 #define MAX_IP_HDR_LEN 60
 #define DEFAULT_TTL 64
@@ -39,6 +40,7 @@
 #define ICMP_NET_CODE 0
 #define ICMP_PORT_CODE 3
 #define ICMP_TIME_EXCEEDED_TYPE 11
+
 /*---------------------------------------------------------------------
  * Internal Function Prototypes
  *---------------------------------------------------------------------*/
@@ -62,6 +64,7 @@ int valid_ip(uint8_t *packet, unsigned int len);
 int valid_icmp(struct sr_ip_hdr *ip_hdr);
 int ping_address_match(uint32_t dip);
 void forward_ip_pkt(struct sr_instance* sr, struct sr_ip_hdr *ip_hdr);
+int translate_pkt(struct sr_instance* sr, uint8_t* packet, char* interface);
 
 /*---------------------------------------------------------------------
  * Method: sr_init(void)
@@ -108,7 +111,6 @@ void sr_handlepacket(struct sr_instance* sr,
         unsigned int len,
         char* interface/* lent */)
 {
-
   /* REQUIRES */
   assert(sr);
   assert(packet);
@@ -119,7 +121,7 @@ void sr_handlepacket(struct sr_instance* sr,
 	/* Ensure that the length is at least enough for an ethernet header */
 	if (len < sizeof(struct sr_ethernet_hdr))
 		return;
-
+	
   /* Handle ARP packet */
 	if (ethertype(packet) == ethertype_arp) {
 		process_arp(sr, packet, len, interface);
@@ -156,10 +158,11 @@ void sr_send_icmp(struct sr_instance* sr, uint8_t *packet, unsigned int len,
 	/* Destination unreachable message or TTL exceeded. */
 	if (type == ICMP_UNREACHABLE_TYPE || type == ICMP_TIME_EXCEEDED_TYPE) {
 	
-		/* Update icmp header fields. */
+		/* Update icmp header fields. Note: seq and id and unused fields. */
 		icmp_hdr.icmp_type = type;
 		icmp_hdr.icmp_code = code;
-		icmp_hdr.unused = 0;
+		icmp_hdr.icmp_seq = 0;
+		icmp_hdr.icmp_id = 0;
 		icmp_hdr.icmp_sum = 0;
 		
 		/* Update the IP header fields. */
@@ -428,6 +431,14 @@ void process_ip(struct sr_instance* sr,
 	if (!valid_ip(packet, len))
 		return;
 	
+	/* If we are functioning as a nat, translate packet. */
+	if (sr->nat) {
+	
+		/* Translate the packet. On failure return and drop the packet. */
+		if (!translate_pkt(sr, packet, interface))
+			return;
+	}
+	
 	/* Is it destined for me?! */
 	ip_hdr = ip_header(packet);
 	if (sr_interface_ip_match(sr, ip_hdr->ip_dst)) {
@@ -603,4 +614,44 @@ void forward_ip_pkt(struct sr_instance* sr, struct sr_ip_hdr *ip_hdr)
 	memcpy(fwd_ip_pkt, ip_hdr, len);
 	sr_encap_and_send_pkt(sr, fwd_ip_pkt, len, ip_hdr->ip_dst, 1, ethertype_ip);
 	free(fwd_ip_pkt);
+}
+
+/*---------------------------------------------------------------------
+ * Method: translate_pkt(struct sr_instance* sr, uint8_t* packet, char* interface)
+ * Scope:  Internal
+ *
+ * Translate an incoming ip packet. The packet is a raw ethernet frame
+ * with a valid IP header. Returns 1 if successful, 0 otherwise. 
+ *
+ *---------------------------------------------------------------------*/
+int translate_pkt(struct sr_instance* sr, uint8_t* packet, char* interface)
+{
+	struct sr_ip_hdr *ip_hdr;
+	
+	/* Drop if the packet is not ICMP or TCP. */
+	ip_hdr = ip_header(packet);
+	if (ip_hdr->ip_p != ip_protocol_icmp || ip_hdr->ip_p != ip_protocol_tcp)
+		return 0;
+
+	/* The packet is from behind the NAT. */
+	if (0 == strncmp(interface, INTERNAL_INTERFACE, INTERFACE_NAME_LEN)) {
+		
+		/* Look up or create mapping. */
+		
+	
+	/* The packet is from external. */
+	} else if (0 == strncmp(interface, EXTERNAL_INTERFACE, INTERFACE_NAME_LEN)) {
+	
+		/* Look up a mapping. */
+		
+		/* If no mapping, store it if it a syn. Otherwise drop it. */
+	
+	/* Weird interface. Drop. */
+	} else {
+		return 0;
+	}
+	
+	/* Translate packet by update source or dest, id port, checksum. */
+	
+	return 1;
 }

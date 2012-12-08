@@ -76,16 +76,44 @@
 #endif
 #define ICMP_DATA_SIZE 28
 
-/* Structure of a ICMP header
+/* 
+ * Structure of a ICMP header
  */
 struct sr_icmp_hdr {
   uint8_t icmp_type;
   uint8_t icmp_code;
   uint16_t icmp_sum;
-  uint32_t unused;			/* This field's use differs between ICMP message types, and is not 
-  												 needed in this lab. */
+  uint16_t icmp_id;
+  uint16_t icmp_seq;
 } __attribute__ ((packed)) ;
 typedef struct sr_icmp_hdr sr_icmp_hdr_t;
+
+/*
+ * Structure of an internet header, naked of options.
+ */
+struct sr_tcp_hdr
+{
+	uint16_t tcp_srcp;				/* Source port number. */
+	uint16_t tcp_dstp;				/* Destination port number. */
+	uint32_t tcp_seqno;				/* Sequence number. */
+	uint32_t tcp_ackno;				/* Ack number. */
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+  unsigned int tcp_control:6;			/* Control bits */
+  unsigned int tcp_reserved:6;		/* Reserved */
+  unsigned int tcp_offset:4;			/* Data offset */
+#elif __BYTE_ORDER == __BIG_ENDIAN
+  unsigned int tcp_offset:4;			/* Data offset */
+  unsigned int tcp_reserved:6;		/* Reserved */
+  unsigned int tcp_control:6;			/* Control bits */
+#else
+#error "Byte ordering not specified" 
+#endif 
+	uint16_t tcp_wind;				/* Window */
+	uint16_t tcp_sum;					/* Checksum */
+	uint16_t tcp_up;					/* Urgent pointer */
+	uint32_t tcp_opt;					/* Options and padding */
+} __attribute__ ((packed)) ;
+typedef struct sr_ip_hdr sr_ip_hdr_t;
 
 /*
  * Structure of an internet header, naked of options.
@@ -132,7 +160,8 @@ struct sr_ethernet_hdr
 typedef struct sr_ethernet_hdr sr_ethernet_hdr_t;
 
 enum sr_ip_protocol {
-  ip_protocol_icmp = 0x0001,
+  ip_protocol_icmp = 1,
+  ip_protocol_tcp = 6
 };
 
 enum sr_ethertype {

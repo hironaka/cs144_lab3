@@ -6,6 +6,8 @@
 #include <time.h>
 #include <pthread.h>
 
+#define TCP_MIN_EXT_PORT 1024
+
 typedef enum {
   nat_mapping_icmp,
   nat_mapping_tcp
@@ -32,7 +34,9 @@ struct sr_nat_mapping {
 struct sr_nat {
   /* add any fields here */
   struct sr_nat_mapping *mappings;
-
+	uint16_t next_port;			/* Next external port number for generated TCP mapping. */
+	uint16_t next_id;				/* Next external id number for generated ICMP mapping. */
+	uint32_t ip_ext;				/* Stores the nat's external ip address, used for mappings. */
   /* threading */
   pthread_mutex_t lock;
   pthread_mutexattr_t attr;

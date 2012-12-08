@@ -34,6 +34,9 @@ struct sr_instance;
  * Node in the interface list for each router
  *
  * -------------------------------------------------------------------------- */
+#define INTERNAL_INTERFACE "eth1"
+#define EXTERNAL_INTERFACE "eth2"
+#define INTERFACE_NAME_LEN 4
 
 struct sr_if
 {
