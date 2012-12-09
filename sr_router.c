@@ -722,9 +722,11 @@ int translate_pkt(struct sr_instance* sr, uint8_t* packet, char* interface)
 	
 	/* External to internal packet. */
 	} else if (type == transit_type_incoming) {
+		aux = icmp_hdr->icmp_id;
 		
 		/* Look up mapping. */
 		if (map_type == nat_mapping_tcp) {
+			aux = tcp_hdr->tcp_dstp;
 			tcp_info = (sr_nat_tcp_aux *)malloc(sizeof(sr_nat_tcp_aux));
 			tcp_info->transition = get_transition(tcp_hdr, type);
 			tcp_info->ip_dst = ip_hdr->ip_src; 
@@ -733,7 +735,7 @@ int translate_pkt(struct sr_instance* sr, uint8_t* packet, char* interface)
 			tcp_info->ackno = tcp_hdr->tcp_ackno;
 		}
 	
-		mapping = sr_nat_lookup_external(&sr->nat_cache, ip_hdr->ip_dst, map_type, tcp_info);
+		mapping = sr_nat_lookup_external(&sr->nat_cache, aux, map_type, tcp_info);
 		if (!mapping)
 			return 0;
 		
