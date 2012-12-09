@@ -843,7 +843,7 @@ uint16_t tcp_cksum(struct sr_ip_hdr *ip_hdr, struct sr_tcp_hdr *tcp_hdr) {
 	
 	pseudo_ip_hdr.ip_src = ip_hdr->ip_src;
 	pseudo_ip_hdr.ip_dst = ip_hdr->ip_dst;
-	pseudo_ip_hdr.zero = 0;
+	/*pseudo_ip_hdr.zero = 0;*/
 	pseudo_ip_hdr.ip_p = ip_hdr->ip_p;
 	pseudo_ip_hdr.ip_len = ip_hdr->ip_len;
 	total_len = sizeof(struct sr_pseudo_ip_hdr) + ip_len(ip_hdr) - ip_ihl(ip_hdr);
