@@ -100,7 +100,8 @@ void sr_init(struct sr_instance* sr)
     pthread_create(&thread, &(sr->attr), sr_arpcache_timeout, sr);
     
     /* Initialize nat. */
-    sr_nat_init(sr, &sr->nat_cache);
+    if (sr->nat)
+	    sr_nat_init(sr, &sr->nat_cache);
 } /* -- sr_init -- */
 
 /*---------------------------------------------------------------------
