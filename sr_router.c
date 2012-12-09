@@ -653,12 +653,12 @@ int translate_pkt(struct sr_instance* sr, uint8_t* packet, char* interface)
 	ip_hdr = ip_header(packet);
 	
 	/* ICMP packet. */
-	if (ip_hdr->ip_p != ip_protocol_icmp) {
+	if (ip_hdr->ip_p == ip_protocol_icmp) {
 		map_type = nat_mapping_icmp;
 		icmp_hdr = icmp_header(ip_hdr);
 	
 	/* TCP packet. */	
-	} else if (ip_hdr->ip_p != ip_protocol_tcp) {
+	} else if (ip_hdr->ip_p == ip_protocol_tcp) {
 		map_type = nat_mapping_tcp;
 		tcp_hdr = tcp_header(ip_hdr);
 	
