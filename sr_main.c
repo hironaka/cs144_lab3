@@ -79,7 +79,7 @@ int main(int argc, char **argv)
 		/* Add additional code to handle -n (enable NAT) -I INT (ICMP query timeout, default 
 		   60 sec), -E INT (TCP established idle timeout, default 7440 sec), -R INT (TCP 
 		   transitory idle timeout, default 300 sec). TODO: remove prints */
-    while ((c = getopt(argc, argv, "hs:v:p:u:t:r:l:T:nI:E:R")) != EOF)
+    while ((c = getopt(argc, argv, "hs:v:p:u:t:r:l:T:nI:E:R:")) != EOF)
     {
         switch (c)
         {
