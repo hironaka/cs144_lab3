@@ -70,7 +70,6 @@ struct sr_nat {
   struct sr_nat_mapping *mappings;
 	uint16_t next_port;			/* Next external port number for generated TCP mapping. */
 	uint16_t next_id;				/* Next external id number for generated ICMP mapping. */
-	uint32_t ip_ext;				/* Stores the nat's external ip address, used for mappings. */
 	int icmp_to; 						/* icmp idle time out in seconds */
   int tcp_estab_to; 			/* tcp established idle time out in seconds */
   int tcp_trans_to; 			/* tcp transitory idle time out in seconds */
@@ -99,6 +98,7 @@ struct sr_nat_mapping *sr_nat_lookup_internal(struct sr_nat *nat,
 /* Insert a new mapping into the nat's mapping table.
    You must free the returned structure if it is not NULL. */
 struct sr_nat_mapping *sr_nat_insert_mapping(struct sr_nat *nat,
-  uint32_t ip_int, uint16_t aux_int, enum sr_nat_mapping_type type, struct sr_nat_tcp_aux *aux);
+  uint32_t ip_int, uint32_t ip_ext, uint16_t aux_int, 
+  enum sr_nat_mapping_type type, struct sr_nat_tcp_aux *aux);
 
 #endif

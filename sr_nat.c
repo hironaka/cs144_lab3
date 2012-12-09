@@ -13,7 +13,6 @@ void update_connection_state(struct sr_nat_mapping *mapping, struct sr_nat_tcp_a
 struct sr_nat_connection *get_connection(struct sr_nat_mapping *mapping, struct sr_nat_tcp_aux *aux);
 
 int sr_nat_init(struct sr_instance *sr, struct sr_nat *nat) { /* Initializes the nat */
-	struct sr_if *interface;
 	
   assert(nat);
 
@@ -32,11 +31,9 @@ int sr_nat_init(struct sr_instance *sr, struct sr_nat *nat) { /* Initializes the
   /* CAREFUL MODIFYING CODE ABOVE THIS LINE! */
   
   /* Initialize any variables here */
-  interface = sr_get_interface(sr, EXTERNAL_INTERFACE);
   nat->mappings = NULL;
 	nat->next_port = TCP_MIN_EXT_PORT;
 	nat->next_id = 1;
-	nat->ip_ext = interface->ip;;
 	nat->icmp_to = sr->icmp_to;
   nat->tcp_estab_to = sr->tcp_estab_to;
   nat->tcp_trans_to = sr->tcp_trans_to;
@@ -233,18 +230,19 @@ struct sr_nat_mapping *sr_nat_lookup_internal(struct sr_nat *nat,
    Actually returns a copy to the new mapping, for thread safety.
  */
 struct sr_nat_mapping *sr_nat_insert_mapping(struct sr_nat *nat,
-  uint32_t ip_int, uint16_t aux_int, enum sr_nat_mapping_type type, 
+  uint32_t ip_int, uint32_t ip_ext, uint16_t aux_int, enum sr_nat_mapping_type type, 
   struct sr_nat_tcp_aux *aux) {
 
   pthread_mutex_lock(&(nat->lock));
 
   /* Create a mapping */
   struct sr_nat_mapping *mapping = NULL, *copy = NULL;
+  
   mapping = (struct sr_nat_mapping *) malloc(sizeof(struct sr_nat_mapping));
 	mapping->type = type;
 	mapping->aux_int = aux_int;
 	mapping->ip_int = ip_int;
-	mapping->ip_ext = nat->ip_ext;
+	mapping->ip_ext = ip_ext;
 	mapping->last_updated = time(NULL);
 	mapping->conns = NULL;
 	mapping->next = NULL;

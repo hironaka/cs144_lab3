@@ -648,6 +648,7 @@ int translate_pkt(struct sr_instance* sr, uint8_t* packet, char* interface)
 	struct sr_icmp_hdr *icmp_hdr = NULL;
 	uint16_t aux;
 	sr_nat_tcp_aux *tcp_info = NULL;
+	struct sr_if *external_interface;
 	
 	ip_hdr = ip_header(packet);
 	
@@ -683,11 +684,23 @@ int translate_pkt(struct sr_instance* sr, uint8_t* packet, char* interface)
 			tcp_info->ackno = tcp_hdr->tcp_ackno;
 		}
 		
-		mapping = sr_nat_lookup_internal(&sr->nat_cache, ip_hdr->ip_src, aux, map_type, tcp_info);
+		mapping = sr_nat_lookup_internal(&sr->nat_cache, 
+																		 ip_hdr->ip_src, 
+																		 aux, 
+																		 map_type, 
+																		 tcp_info);
 		
 		/* No mapping exists. Insert. */
-		if (!mapping) 
-			mapping = sr_nat_insert_mapping(&sr->nat_cache, ip_hdr->ip_src, aux, map_type, tcp_info);
+  
+		if (!mapping) {
+			external_interface = sr_get_interface(sr, EXTERNAL_INTERFACE);
+			mapping = sr_nat_insert_mapping(&sr->nat_cache, 
+																			ip_hdr->ip_src, 
+																			external_interface->ip, 
+																			aux, 
+																			map_type, 
+																			tcp_info);
+		}
 		
 		/* Rewrite IP source */
 		ip_hdr->ip_src = mapping->ip_ext;
