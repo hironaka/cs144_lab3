@@ -202,8 +202,8 @@ void print_hdr_tcp(uint8_t *buf) {
 	fprintf(stderr, "TCP header:\n");
   fprintf(stderr, "src port: %d \n", ntohs(tcp_hdr->tcp_srcp));
   fprintf(stderr, "dst port: %d \n", ntohs(tcp_hdr->tcp_dstp));
-  fprintf(stderr, "seqno: %d \n", ntohl(tcp_hdr->tcp_seqno));
-  fprintf(stderr, "ackno: %d \n", ntohl(tcp_hdr->tcp_ackno));
+  fprintf(stderr, "seqno: %u \n", ntohl(tcp_hdr->tcp_seqno));
+  fprintf(stderr, "ackno: %u \n", ntohl(tcp_hdr->tcp_ackno));
   /* Keep checksum in NBO */
   fprintf(stderr, "tchecksum: %d \n", tcp_hdr->tcp_sum);
 }
