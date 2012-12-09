@@ -711,7 +711,7 @@ int translate_pkt(struct sr_instance* sr, uint8_t* packet, char* interface)
 		if (map_type == nat_mapping_icmp) {
 			icmp_hdr->icmp_id = mapping->aux_ext;
 			icmp_hdr->icmp_sum = 0;
-			icmp_hdr->icmp_sum = cksum(icmp_hdr, ip_len(ip_hdr) - ICMP_IP_HDR_LEN);
+			icmp_hdr->icmp_sum = cksum(icmp_hdr, ip_len(ip_hdr) - ICMP_IP_HDR_LEN_BYTES);
 		
 		/* Rewrite source port for TCP. */	
 		} else {
