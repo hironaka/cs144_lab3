@@ -738,8 +738,6 @@ int translate_pkt(struct sr_instance* sr, uint8_t* packet, char* interface)
 		mapping = sr_nat_lookup_external(&sr->nat_cache, aux, map_type, tcp_info);
 		if (!mapping)
 			return 0;
-		
-		/* TODO If no mapping, store it if it a syn. Otherwise drop it. */
 
 		/* Rewrite IP destination. */
 		ip_hdr->ip_dst = mapping->ip_int;

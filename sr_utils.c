@@ -197,6 +197,17 @@ void print_hdr_icmp(uint8_t *buf) {
   fprintf(stderr, "\tchecksum: %d\n", icmp_hdr->icmp_sum);
 }
 
+void print_hdr_tcp(uint8_t *buf) {
+	struct sr_tcp_hdr *tcp_hdr = (struct sr_tcp_hdr *)buf;
+	fprintf(stderr, "TCP header:\n");
+  fprintf(stderr, "src port: %d \n", ntohs(tcp_hdr->tcp_srcp));
+  fprintf(stderr, "dst port: %d \n", ntohs(tcp_hdr->tcp_dstp));
+  fprintf(stderr, "seqno: %d \n", ntohl(tcp_hdr->tcp_seqno));
+  fprintf(stderr, "ackno: %d \n", ntohl(tcp_hdr->tcp_ackno));
+  /* Keep checksum in NBO */
+  fprintf(stderr, "tchecksum: %d \n", tcp_hdr->tcp_sum);
+}
+
 
 /* Prints out fields in ARP header */
 void print_hdr_arp(uint8_t *buf) {
