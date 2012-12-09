@@ -76,6 +76,10 @@
 #endif
 #define ICMP_DATA_SIZE 28
 
+#define TCP_ACK 0x02
+#define TCP_SYN 0x10
+#define TCP_FIN 0x20
+
 /* 
  * Structure of a ICMP header
  */
@@ -113,7 +117,7 @@ struct sr_tcp_hdr
 	uint16_t tcp_up;					/* Urgent pointer */
 	uint32_t tcp_opt;					/* Options and padding */
 } __attribute__ ((packed)) ;
-typedef struct sr_ip_hdr sr_ip_hdr_t;
+typedef struct sr_tcp_hdr sr_tcp_hdr;
 
 /*
  * Structure of an internet header, naked of options.
@@ -143,6 +147,18 @@ struct sr_ip_hdr
     uint32_t ip_src, ip_dst;	/* source and dest address */
   } __attribute__ ((packed)) ;
 typedef struct sr_ip_hdr sr_ip_hdr_t;
+
+/*
+ * Structure of an internet header, naked of options.
+ */
+struct sr_pseudo_ip_hdr
+  {
+	uint32_t ip_src, ip_dst;	/* source and dest address */
+	uint8_t zero; 						/* Zeroed out field. */
+	uint8_t ip_p;							/* protocol */
+  uint16_t ip_len;					/* total length */
+  } __attribute__ ((packed)) ;
+typedef struct sr_pseudo_ip_hdr sr_pseudo_ip_hdr;
 
 /* 
  *  Ethernet packet header prototype.  Too many O/S's define this differently.

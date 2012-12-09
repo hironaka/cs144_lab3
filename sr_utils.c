@@ -87,7 +87,7 @@ uint8_t ip_protocol(uint8_t *buf) {
 }
 
 /*---------------------------------------------------------------------
- * Utility method's related to processing ethernet packets. All take in
+ * Utility method's related to processing icmp packets. All take in
  * raw ethernet packet in network byte order and return host byte order.
  *---------------------------------------------------------------------*/
 struct sr_icmp_hdr *icmp_header(struct sr_ip_hdr *ip_hdr)
@@ -96,6 +96,18 @@ struct sr_icmp_hdr *icmp_header(struct sr_ip_hdr *ip_hdr)
 	
 	icmp_hdr = (uint8_t *)(ip_hdr) + ip_ihl(ip_hdr);
 	return (struct sr_icmp_hdr *)icmp_hdr;
+}
+
+/*---------------------------------------------------------------------
+ * Utility method's related to processing tcp packets. All take in
+ * raw ethernet packet in network byte order and return host byte order.
+ *---------------------------------------------------------------------*/
+struct sr_tcp_hdr *tcp_header(struct sr_ip_hdr *ip_hdr)
+{
+	uint8_t *tcp_hdr;
+	
+	tcp_hdr = (uint8_t *)(ip_hdr) + ip_ihl(ip_hdr);
+	return (struct sr_tcp_hdr *)tcp_hdr;
 }
 
 /* Prints out formatted Ethernet address, e.g. 00:11:22:33:44:55 */
