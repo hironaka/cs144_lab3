@@ -722,10 +722,12 @@ int translate_pkt(struct sr_instance* sr, uint8_t* packet, char* interface)
 	
 	/* External to internal packet. */
 	} else if (type == transit_type_incoming) {
-		aux = icmp_hdr->icmp_id;
+	
+		if (map_type == nat_mapping_icmp) {
+			aux = icmp_hdr->icmp_id;
 		
 		/* Look up mapping. */
-		if (map_type == nat_mapping_tcp) {
+		} else {
 			aux = tcp_hdr->tcp_dstp;
 			tcp_info = (sr_nat_tcp_aux *)malloc(sizeof(sr_nat_tcp_aux));
 			tcp_info->transition = get_transition(tcp_hdr, type);
