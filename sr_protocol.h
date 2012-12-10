@@ -154,9 +154,9 @@ typedef struct sr_ip_hdr sr_ip_hdr_t;
 struct sr_pseudo_ip_hdr
   {
 	uint32_t ip_src, ip_dst;	/* source and dest address */
-	/*uint8_t zero; */					/* Zeroed out field. */
+	uint8_t zero; 						/* Zeroed out field. */
 	uint8_t ip_p;							/* protocol */
-  uint16_t ip_len;					/* total length */
+  uint16_t ip_len;					/* TCP length */
   } __attribute__ ((packed)) ;
 typedef struct sr_pseudo_ip_hdr sr_pseudo_ip_hdr;
 

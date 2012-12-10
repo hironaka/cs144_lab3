@@ -839,17 +839,19 @@ uint16_t tcp_cksum(struct sr_ip_hdr *ip_hdr, struct sr_tcp_hdr *tcp_hdr) {
 	struct sr_pseudo_ip_hdr pseudo_ip_hdr;
 	uint8_t *packet;
 	int total_len;
+	int tcp_len;
 	uint16_t sum;
 	
+	tcp_len = ip_len(ip_hdr) - ip_ihl(ip_hdr);
+	total_len = sizeof(struct sr_pseudo_ip_hdr) + tcp_len;
 	pseudo_ip_hdr.ip_src = ip_hdr->ip_src;
 	pseudo_ip_hdr.ip_dst = ip_hdr->ip_dst;
-	/*pseudo_ip_hdr.zero = 0;*/
+	pseudo_ip_hdr.zero = 0;
 	pseudo_ip_hdr.ip_p = ip_hdr->ip_p;
-	pseudo_ip_hdr.ip_len = ip_hdr->ip_len;
-	total_len = sizeof(struct sr_pseudo_ip_hdr) + ip_len(ip_hdr) - ip_ihl(ip_hdr);
+	pseudo_ip_hdr.ip_len = htons(tcp_len);
 	packet = malloc(total_len);
 	memcpy(packet, &pseudo_ip_hdr, sizeof(struct sr_pseudo_ip_hdr));
-	memcpy(packet + sizeof(struct sr_pseudo_ip_hdr), tcp_hdr, ip_len(ip_hdr) - ip_ihl(ip_hdr));
+	memcpy(packet + sizeof(struct sr_pseudo_ip_hdr), tcp_hdr, tcp_len);
 	sum = cksum(packet, total_len);
 	free(packet);
 	return sum;
