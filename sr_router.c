@@ -814,24 +814,24 @@ uint16_t get_transition(struct sr_tcp_hdr *tcp_hdr, enum sr_nat_transit_type typ
 	/* The tcp header is something we are sending. */
 	if (type == transit_type_outgoing) {
 	
-		if (tcp_hdr->tcp_control & TCP_ACK)
+		if (ntohs(tcp_hdr->tcp_control) & TCP_ACK)
 			trans |= SEND_ACK;
 		
-		if (tcp_hdr->tcp_control & TCP_SYN)
+		if (ntohs(tcp_hdr->tcp_control) & TCP_SYN)
 			trans |= SEND_SYN;
 		
-		if (tcp_hdr->tcp_control & TCP_FIN)
+		if (ntohs(tcp_hdr->tcp_control) & TCP_FIN)
 			trans |= SEND_FIN;
 		
 	/* The tcp header is something we are receiving. */
 	} else if (type == transit_type_incoming) {
-		if (tcp_hdr->tcp_control & TCP_ACK)
+		if (ntohs(tcp_hdr->tcp_control) & TCP_ACK)
 			trans |= RECEIVE_ACK;
 		
-		if (tcp_hdr->tcp_control & TCP_SYN)
+		if (ntohs(tcp_hdr->tcp_control) & TCP_SYN)
 			trans |= RECEIVE_SYN;
 		
-		if (tcp_hdr->tcp_control & TCP_FIN)
+		if (ntohs(tcp_hdr->tcp_control) & TCP_FIN)
 			trans |= RECEIVE_FIN;
 	}
 

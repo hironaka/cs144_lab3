@@ -76,9 +76,9 @@
 #endif
 #define ICMP_DATA_SIZE 28
 
-#define TCP_ACK 0x02
-#define TCP_SYN 0x10
-#define TCP_FIN 0x20
+#define TCP_ACK 0x08
+#define TCP_SYN 0x40
+#define TCP_FIN 0x80
 
 /* 
  * Structure of a ICMP header
@@ -102,13 +102,12 @@ struct sr_tcp_hdr
 	uint32_t tcp_seqno;				/* Sequence number. */
 	uint32_t tcp_ackno;				/* Ack number. */
 #if __BYTE_ORDER == __LITTLE_ENDIAN
-  unsigned int tcp_control:6;			/* Control bits */
-  unsigned int tcp_reserved:6;		/* Reserved */
-  unsigned int tcp_offset:4;			/* Data offset */
+  unsigned int tcp_control:8;			/* Control bits */
+  unsigned int tcp_reserved:8;		/* Reserved. Note: this is not the actual struct, 
+  																 * but all we need for this lab. */
 #elif __BYTE_ORDER == __BIG_ENDIAN
-  unsigned int tcp_offset:4;			/* Data offset */
-  unsigned int tcp_reserved:6;		/* Reserved */
-  unsigned int tcp_control:6;			/* Control bits */
+  unsigned int tcp_reserved:8;		/* Reserved */
+  unsigned int tcp_control:8;			/* Control bits */
 #else
 #error "Byte ordering not specified" 
 #endif 
