@@ -260,6 +260,10 @@ void print_hdrs(uint8_t *buf, uint32_t length) {
       else
         print_hdr_icmp(buf + sizeof(sr_ethernet_hdr_t) + sizeof(sr_ip_hdr_t));
     }
+    
+    if (ip_proto == ip_protocol_tcp) { /* TCP */
+    	print_hdr_tcp(buf + sizeof(sr_ethernet_hdr_t) + sizeof(sr_ip_hdr_t));
+    }
   }
   else if (ethtype == ethertype_arp) { /* ARP */
     minlength += sizeof(sr_arp_hdr_t);
