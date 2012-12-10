@@ -112,20 +112,16 @@ int main(int argc, char **argv)
                 template = optarg;
                 break;
             case 'n':
-            		fprintf(stderr, "NAT ON\n");
             		nat = 1;
             		break;
             case 'I':
             		icmp_to = atoi((char *) optarg);
-            		fprintf(stderr, "ICMP TO: %d\n", icmp_to);
             		break;
             case 'E':
             		tcp_estab_to = atoi((char *) optarg);
-            		fprintf(stderr, "TCP ESTAB TO: %d\n", tcp_estab_to);
             		break;
             case 'R':
             		tcp_trans_to = atoi((char *) optarg);
-            		fprintf(stderr, "TCP TRANS TO: %d\n", tcp_trans_to);
             		break;
         } /* switch */
     } /* -- while -- */
