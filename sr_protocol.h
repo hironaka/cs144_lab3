@@ -76,9 +76,9 @@
 #endif
 #define ICMP_DATA_SIZE 28
 
-#define TCP_ACK 0x08
-#define TCP_SYN 0x40
-#define TCP_FIN 0x80
+#define TCP_ACK 0x20
+#define TCP_SYN 0x80
+#define TCP_FIN 0x100
 
 /* 
  * Structure of a ICMP header
