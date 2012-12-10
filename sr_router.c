@@ -676,6 +676,7 @@ int translate_pkt(struct sr_instance* sr, uint8_t* packet, char* interface)
 			aux = icmp_hdr->icmp_id;
 		
 		} else {
+			aux = tcp_hdr->tcp_srcp;
 			tcp_info = (sr_nat_tcp_aux *)malloc(sizeof(sr_nat_tcp_aux));
 			tcp_info->transition = get_transition(tcp_hdr, type);
 			tcp_info->ip_dst = ip_hdr->ip_dst; 
