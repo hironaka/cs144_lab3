@@ -753,9 +753,9 @@ int translate_pkt(struct sr_instance* sr, uint8_t* packet, char* interface)
 			icmp_hdr->icmp_sum = 0;
 			icmp_hdr->icmp_sum = cksum(icmp_hdr, ip_len(ip_hdr) - ICMP_IP_HDR_LEN_BYTES);
 		
-		/* Rewrite source port for TCP. */	
+		/* Rewrite destination port for TCP. */	
 		} else {
-			tcp_hdr->tcp_srcp = mapping->aux_int;
+			tcp_hdr->tcp_dstp = mapping->aux_int;
 			tcp_hdr->tcp_sum = 0;
 			tcp_hdr->tcp_sum = tcp_cksum(ip_hdr, tcp_hdr);
 		}
